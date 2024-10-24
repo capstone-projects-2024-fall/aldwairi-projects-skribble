@@ -23,3 +23,14 @@ window.onclick = function(event) {
     modal.style.display = "none";
   }
 }
+
+// Handle prompt selection and redirection
+var prompts = document.querySelectorAll(".modal-body li");
+prompts.forEach(function(prompt) {
+  prompt.addEventListener("click", function() {
+    var selectedPrompt = prompt.textContent;
+
+    // Navigate to the new page (journal page) and pass the selected prompt
+    window.location.href = "journalPage.html?prompt=" + encodeURIComponent(selectedPrompt);
+  });
+});
