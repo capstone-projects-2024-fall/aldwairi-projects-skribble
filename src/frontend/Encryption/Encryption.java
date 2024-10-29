@@ -13,10 +13,11 @@ public class Encryption {
     /**
      * Encrypts data using AES/GCM/NoPadding.
      *
-     * @param data Data to encrypt
-     * @param key  SecretKey for encryption
-     * @return Pair containing IV and encrypted data
-     * @throws Exception if encryption fails
+     * @param data data to encrypt
+     * @param key  secret key for encryption
+     * @return Pair&lt;byte[], byte[]&gt; - pair containing IV and ciphertext
+     * @throws NullPointerException             if either data or key are null
+     * @throws javax.crypto.AEADBadTagException when an invalid key is passed
      */
     public static Pair<byte[], byte[]> encrypt(byte[] data, SecretKey key) throws Exception {
 
@@ -37,10 +38,10 @@ public class Encryption {
     /**
      * Decrypts data using AES/GCM/NoPadding.
      *
-     * @param key        SecretKey for decryption
-     * @param iv         Initialization Vector
-     * @param cipherText Data to decrypt
-     * @return Decrypted data
+     * @param key        secret key for decryption
+     * @param iv         initialization Vector
+     * @param cipherText data to decrypt
+     * @return byte[] - decrypted data
      * @throws NullPointerException             if either key, iv, or encryptedData are null
      * @throws javax.crypto.AEADBadTagException when an invalid key or iv is passed
      */
@@ -59,10 +60,10 @@ public class Encryption {
     /**
      * Generates a SecretKey from a password and salt using PBKDF2.
      *
-     * @param password Password to derive the key
-     * @param salt     Salt for key derivation
-     * @return SecretKey derived from the password and salt
-     * @throws Exception if key generation fails
+     * @param password password for key derivation
+     * @param salt     salt for key derivation
+     * @return SecretKey - key derived from the password and salt
+     * @throws NullPointerException if either password or salt are null
      */
     public static SecretKey generateKeyFromPassword(String password, byte[] salt) throws Exception {
 
@@ -81,8 +82,8 @@ public class Encryption {
     /**
      * Generates a random salt of specified length.
      *
-     * @param length Length of the salt in bytes
-     * @return Randomly generated salt
+     * @param length length of the salt in bytes
+     * @return byte[] - randomly generated salt
      */
     public static byte[] generateSalt(int length) {
         byte[] salt = new byte[length];
@@ -94,7 +95,7 @@ public class Encryption {
     /**
      * Generates a random salt of 10 bytes.
      *
-     * @return Randomly generated salt
+     * @return byte[] - randomly generated salt
      */
     public static byte[] generateSalt() {
         return generateSalt(10);
