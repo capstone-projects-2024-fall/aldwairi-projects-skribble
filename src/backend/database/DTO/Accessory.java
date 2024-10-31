@@ -13,6 +13,43 @@ public class Accessory {
     private String accessoryPNG;
 
     /**
+     * Constructor
+     * @param accessoryID
+     * @param accessoryName
+     * @param accessoryType
+     * @param userID
+     * @param petID
+     * @param accessoryPrice
+     * @param accessoryPNG
+     */
+    public Accessory(int accessoryID, String accessoryName, String accessoryType, int userID, int petID, int accessoryPrice, String accessoryPNG) {
+        this.accessoryID = accessoryID;
+        this.accessoryName = accessoryName;
+        this.accessoryType = accessoryType;
+        this.userID = userID;
+        this.petID = petID;
+        this.accessoryPrice = accessoryPrice;
+        this.accessoryPNG = accessoryPNG;
+    }
+
+    /**
+     * toString
+     * @return
+     */
+    @java.lang.Override
+    public java.lang.String toString() {
+        return "Accessory{" +
+                "accessoryID=" + accessoryID +
+                ", accessoryName='" + accessoryName + '\'' +
+                ", accessoryType='" + accessoryType + '\'' +
+                ", userID=" + userID +
+                ", petID=" + petID +
+                ", accessoryPrice=" + accessoryPrice +
+                ", accessoryPNG='" + accessoryPNG + '\'' +
+                '}';
+    }
+
+    /**
      * Gets accessory ID
      * @return accessory ID
      */
