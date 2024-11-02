@@ -1,1 +1,4 @@
 src/node_modules/
+expo-env.d.ts
+/.idea/
+out/
