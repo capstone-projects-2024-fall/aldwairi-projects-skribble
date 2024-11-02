@@ -1,7 +1,9 @@
-src/node_modules/
-expo-env.d.ts
 /.idea/
-/out/
-.DS_Store
+out/
+
+src/node_modules/
 src/package-lock.json
-/src/.expo/
+src/.expo/
+expo-env.d.ts
+
+*.DS_Store
