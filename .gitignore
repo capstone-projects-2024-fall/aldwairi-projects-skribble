@@ -1,4 +1,7 @@
 src/node_modules/
 expo-env.d.ts
 /.idea/
-out/
+/out/
+.DS_Store
+src/package-lock.json
+/src/.expo/
