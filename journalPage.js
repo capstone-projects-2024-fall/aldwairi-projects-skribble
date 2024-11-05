@@ -8,57 +8,30 @@ const fullEntryTitle = document.getElementById('full-entry-title');
 const fullEntryContent = document.getElementById('full-entry-content');
 const fullEntryDate = document.getElementById('full-entry-date');
 const backButton = document.getElementById('back-button');
-const logoutButton = document.getElementById('logout-button');
-const loginContainer = document.getElementById('login-container');
-const journalContainer = document.getElementById('journal-container');
-const loginMessage = document.getElementById('login-message');
 
 let entries = JSON.parse(localStorage.getItem('journalEntries')) || [];
 let currentDeleteIndex = null;
 
-// Ensure the login screen is shown first when the page loads
+// Show journal on page load
 document.addEventListener('DOMContentLoaded', () => {
-  const loggedInUser = localStorage.getItem('loggedInUser');
-  if (loggedInUser) {
-    showJournal();
-  } else {
-    showLogin();
-  }
+  displayEntries(); 
 });
-
-function showLogin() {
-  loginContainer.style.display = 'block';
-  journalContainer.style.display = 'none';
-}
-
-function showJournal() {
-  loginContainer.style.display = 'none';
-  journalContainer.style.display = 'block';
-  displayEntries();
-}
-
-function login() {
-  const username = document.getElementById("userName").value;
-  const password = document.getElementById("userPassword").value;
-
-  if (username.trim() === '' || password.trim() === '') {
-    loginMessage.textContent = 'Please enter both username and password.';
-    return;
-  }
-
-  localStorage.setItem('loggedInUser', username);
-  document.getElementById("userName").value = ''; // Clear username field
-  document.getElementById("userPassword").value = ''; // Clear password field
-  showJournal();
-}
 
 function displayEntries() {
   journalEntries.innerHTML = '';
   entries.forEach((entry, index) => {
     const entryElement = document.createElement('div');
     entryElement.classList.add('entry');
+
+    const imageSrc = entry.imagePath || getRandomImage();
+    if (!entry.imagePath) {
+      entry.imagePath = imageSrc;
+      localStorage.setItem('journalEntries', JSON.stringify(entries));
+    }
     entryElement.innerHTML = `
-      <h3>${entry.title}</h3>
+      <img src="${imageSrc}" alt="Bear" class="entry-image">
+      <h3 class="entry-title">${entry.title}</h3>
+      <small class="entry-date">${new Date(entry.date).toLocaleDateString()}</small>
       <button class="delete-btn">Delete</button>
     `;
     entryElement.addEventListener('click', () => showFullEntry(index));
@@ -73,11 +46,23 @@ function displayEntries() {
   });
 }
 
+function getRandomImage() {
+  const images = ['src/bear/bear1.png','src/bear/bear2.png','src/bear/bear3.png','src/bear/bear4.png', 'src/bear/bear5.png'];
+  return images[Math.floor(Math.random() * images.length)];
+}
+
 function showNewEntryForm() {
   journalForm.style.display = 'flex';
   journalEntries.style.display = 'none';
   fullEntrySection.style.display = 'none';
 }
+
+// Event listener for the Cancel button
+document.getElementById('cancel-entry-button').addEventListener('click', () => {
+  journalForm.style.display = 'none';
+  journalEntries.style.display = 'grid';
+  backButton.style.display = 'none';
+});
 
 function showFullEntry(index) {
   const entry = entries[index];
@@ -87,6 +72,7 @@ function showFullEntry(index) {
   fullEntrySection.style.display = 'block';
   journalEntries.style.display = 'none';
   journalForm.style.display = 'none';
+  backButton.style.display = 'block';
 }
 
 journalForm.addEventListener('submit', (e) => {
@@ -96,7 +82,8 @@ journalForm.addEventListener('submit', (e) => {
   const newEntry = {
     title,
     content,
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
+    imagePath: getRandomImage() // Assign a random image path to new entries
   };
   entries.unshift(newEntry);
   localStorage.setItem('journalEntries', JSON.stringify(entries));
@@ -131,11 +118,6 @@ cancelDeleteBtn.addEventListener('click', hideDeleteConfirmation);
 backButton.addEventListener('click', () => {
   fullEntrySection.style.display = 'none';
   journalEntries.style.display = 'grid';
+  backButton.style.display = 'none';
 });
 
-logoutButton.addEventListener('click', () => {
-  localStorage.removeItem('loggedInUser');
-  document.getElementById("userName").value = ''; // Clear username field
-  document.getElementById("userPassword").value = ''; // Clear password field
-  showLogin();
-});
