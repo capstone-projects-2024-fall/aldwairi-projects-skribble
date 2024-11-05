@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parental Control Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="control-panel-container">
+        <h1>Parental Control Panel</h1>
+
+        <!-- Email Section -->
+        <div class="email-section">
+            <p><strong>Current Email:</strong> <span id="parentEmail">parent@example.com</span></p>
+            <label for="newEmail">Change Email:</label>
+            <input type="email" id="newEmail" placeholder="Enter new email" />
+            <button onclick="changeEmail()">Change Email</button>
+        </div>
+
+        <!-- Feature Controls -->
+        <div class="controls-section">
+            <h2>Feature Controls</h2>
+            
+            <!-- Add/View Friends -->
+            <div class="control-item">
+                <input type="checkbox" id="addViewFriends" checked />
+                <label for="addViewFriends">Allow Add/View Friends:</label>
+            </div>
+
+            <!-- Enable Chat Feature -->
+            <div class="control-item">
+                <input type="checkbox" id="enableChat" checked />
+                <label for="enableChat">Enable Chat Feature:</label>
+            </div>
+
+            <!-- Allow Media Sharing -->
+            <div class="control-item">
+                <input type="checkbox" id="mediaSharing" checked />
+                <label for="mediaSharing">Allow Media Sharing:</label>
+            </div>
+
+            <!-- Set Time Limits -->
+            <div class="control-item">
+                <label for="timeLimit">Set Time Limit (hours per day):</label>
+                <input type="number" id="timeLimit" min="0" max="24" value="2" />
+            </div>
+
+            <button onclick="saveControls()">Save Settings</button>
+        </div>
+    </div>
+
+    <script src="parentPortal.js"></script>
+</body>
+</html>
