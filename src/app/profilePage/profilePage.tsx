@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import './styles.css';
 
 const ProfilePage: React.FC = () => {
-    const [avatarName, setAvatarName] = useState(''); // State for avatar name
+    const [avatarName, setAvatarName] = useState(''); // State for new avatar name
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF'); // Default background color
+    const [userName, setUserName] = useState('John Doe'); // State for displayed user name
     const router = useRouter();
 
     const userInfo = {
-        name: 'John Doe',
         email: 'john@example.com',
         coins: 120,
         streak: 15,
@@ -16,8 +16,16 @@ const ProfilePage: React.FC = () => {
     };
 
     const updateAvatarName = () => {
-        // Logic to update avatar name can be added here
-        console.log(`Updated avatar name: ${avatarName}`);
+        if (avatarName.trim() !== '') {
+            setUserName(avatarName); // Update displayed name
+            console.log(`Updated avatar name: ${avatarName}`);
+
+            // Optionally: Save to local storage or an API
+            // localStorage.setItem('userName', avatarName);
+            // or make an API call here
+        } else {
+            console.warn('Avatar name cannot be empty.');
+        }
     };
 
     const changeBackgroundColor = (color: string) => {
@@ -34,7 +42,7 @@ const ProfilePage: React.FC = () => {
 
             {/* Name, Coins, Streak, EXP Display */}
             <div className="user-info">
-                <p><strong>Name:</strong> <span id="userName">{userInfo.name}</span></p>
+                <p><strong>Name:</strong> <span id="userName">{userName}</span></p>
                 <p><strong>Email:</strong> <span id="userEmail">{userInfo.email}</span></p>
                 <p><strong>Coins:</strong> <span id="userCoins">{userInfo.coins}</span></p>
                 <p><strong>Streak:</strong> <span id="userStreak">{userInfo.streak}</span></p>
@@ -44,12 +52,12 @@ const ProfilePage: React.FC = () => {
             {/* Avatar Name Edit */}
             <div className="avatar-edit">
                 <label htmlFor="avatarName">Edit Avatar Name:</label>
-                <input 
-                    type="text" 
-                    id="avatarName" 
-                    placeholder="Enter new avatar name" 
-                    value={avatarName} 
-                    onChange={(e) => setAvatarName(e.target.value)} 
+                <input
+                    type="text"
+                    id="avatarName"
+                    placeholder="Enter new avatar name"
+                    value={avatarName}
+                    onChange={(e) => setAvatarName(e.target.value)}
                 />
                 <button onClick={updateAvatarName}>Update Avatar Name</button>
             </div>
@@ -69,7 +77,7 @@ const ProfilePage: React.FC = () => {
 
             {/* Go to Homepage */}
             <div className="back-button">
-                <button onClick={() => goToPage('../homePage')}>Back</button>
+                <button onClick={() => goToPage('../homePage/homePage.html')}>Back</button>
             </div>
         </div>
     );
