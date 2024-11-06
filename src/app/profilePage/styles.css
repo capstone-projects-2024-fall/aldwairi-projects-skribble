@@ -62,3 +62,77 @@ button:hover {
 .parental-link a:hover {
     text-decoration: underline;
 }
+
+.streak-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.streak-icon {
+    margin-left: 6px;
+}
+
+.streak-icon svg {
+    fill: #ffa200;
+    transition: transform 0.3s ease-in-out;
+}
+
+.streak-icon:hover svg {
+    transform: scale(1.1);
+}
+
+/* EXP */
+.exp-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.exp-icon {
+    margin-left: 6px;
+}
+
+.exp-icon svg {
+    fill: #ffffff;
+    transition: transform 0.3s ease-in-out;
+}
+
+.exp-icon:hover svg {
+    transform: scale(1.1);
+}
+
+/* COINS */
+.coins-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.coin-icon {
+    margin-left: 6px;
+}
+
+.coin-icon svg {
+    fill: #ffd630;
+    transition: transform 0.3s ease-in-out;
+}
+
+.coin-icon:hover svg {
+    transform: scale(1.1);
+}
+
+.avatar-edit {
+    margin-top: 20px;
+}
+
+.bg-color-change {
+    margin-top: 20px;
+}
+
+.parental-link, .back-button {
+    margin-top: 20px;
+}
