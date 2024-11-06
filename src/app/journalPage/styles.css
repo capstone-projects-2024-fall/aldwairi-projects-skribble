@@ -3,6 +3,8 @@ body {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  align-content: center;
+  text-align: center;
   background-color: #99CA9C;
 }
 
