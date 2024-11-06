@@ -1,13 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles.css'; // Journal Page Styles
+interface JournalEntry {
+  title: string;
+  content: string;
+  date: string;
+  imagePath: string;
+}
 
 const JournalPage: React.FC = () => {
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [entries, setEntries] = useState<any[]>([]);
-  const [currentEntry, setCurrentEntry] = useState<any | null>(null);
+  const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
   const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+  const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null); // For modal prompt
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null); // Track selected prompt
+
+  useEffect(() => {
+    // Load journal entries from localStorage
+    const storedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+    setEntries(storedEntries);
+  }, []);
+
+  useEffect(() => {
+    // Store journal entries in localStorage whenever they change
+    localStorage.setItem('journalEntries', JSON.stringify(entries));
+  }, [entries]);
+
+  const getRandomImage = (): string => {
+    const images = ['../assets/images/bear/bear1.png', '../assets/images/bear/bear2.png', '../assets/images/bear/bear3.png', '../assets/images/bear/bear4.png', '../assets/images/bear/bear5.png'];
+    return images[Math.floor(Math.random() * images.length)];
+  };
 
   const showNewEntryForm = () => {
     setIsFormVisible(true);
@@ -21,30 +44,31 @@ const JournalPage: React.FC = () => {
     event.preventDefault();
     const title = (event.target as any).title.value;
     const content = (event.target as any).content.value;
-    const newEntry = {
+    const newEntry: JournalEntry = {
       title,
       content,
-      date: new Date().toLocaleString(),
+      date: new Date().toISOString(),
+      imagePath: getRandomImage(),
     };
-
-    setEntries([...entries, newEntry]);
+    setEntries([newEntry, ...entries]);
     setIsFormVisible(false);
   };
 
   const handleDeleteEntry = () => {
-    if (currentEntry) {
-      setEntries(entries.filter((entry) => entry !== currentEntry));
+    if (currentDeleteIndex !== null) {
+      const updatedEntries = entries.filter((_, index) => index !== currentDeleteIndex);
+      setEntries(updatedEntries);
       setIsDeleteConfirmVisible(false);
-      setCurrentEntry(null);
+      setCurrentDeleteIndex(null);
     }
+  };
+
+  const handleViewEntry = (index: number) => {
+    setCurrentEntry(entries[index]);
   };
 
   const handleBack = () => {
     setCurrentEntry(null);
-  };
-
-  const handleViewEntry = (entry: any) => {
-    setCurrentEntry(entry);
   };
 
   const openModal = () => {
@@ -60,11 +84,20 @@ const JournalPage: React.FC = () => {
     closeModal();
   };
 
+  const showDeleteConfirmation = (index: number) => {
+    setCurrentDeleteIndex(index);
+    setIsDeleteConfirmVisible(true);
+  };
+
+  const hideDeleteConfirmation = () => {
+    setIsDeleteConfirmVisible(false);
+  };
+
   return (
     <div id="journal-container">
       {/* Logo Image */}
       <div className="logo-container">
-        <img src="src/GreenPinkLogo.png" alt="SKRIBBLE Logo" className="logo-image" />
+        <img src="../assets/images/GreenPinkLogo.png" alt="SKRIBBLE Logo" className="logo-image" />
       </div>
 
       {/* New Entry Button */}
@@ -98,10 +131,13 @@ const JournalPage: React.FC = () => {
       {/* Journal Entries */}
       <div id="journal-entries">
         {entries.map((entry, index) => (
-          <div key={index} className="journal-entry" onClick={() => handleViewEntry(entry)}>
-            <h3>{entry.title}</h3>
-            <p>{entry.content.slice(0, 100)}...</p>
-            <small>{entry.date}</small>
+          <div key={index} className="journal-entry" onClick={() => handleViewEntry(index)}>
+            <img src={entry.imagePath} alt="Bear" className="entry-image" />
+            <h3 className="entry-title">{entry.title}</h3>
+            <small className="entry-date">{new Date(entry.date).toLocaleDateString()}</small>
+            <button className="delete-btn" onClick={(e) => { e.stopPropagation(); showDeleteConfirmation(index); }}>
+              Delete
+            </button>
           </div>
         ))}
       </div>
@@ -111,15 +147,11 @@ const JournalPage: React.FC = () => {
         <div id="full-entry" className="full-entry">
           <h3 id="full-entry-title">{currentEntry.title}</h3>
           <p id="full-entry-content">{currentEntry.content}</p>
-          <small id="full-entry-date">{currentEntry.date}</small>
+          <small id="full-entry-date">{new Date(currentEntry.date).toLocaleString()}</small>
           <button id="back-button" className="styled-button" onClick={handleBack}>
             Back
           </button>
-          <button
-            id="delete-entry-button"
-            className="styled-button"
-            onClick={() => setIsDeleteConfirmVisible(true)}
-          >
+          <button id="delete-entry-button" className="styled-button" onClick={() => showDeleteConfirmation(entries.indexOf(currentEntry))}>
             Delete Entry
           </button>
         </div>
@@ -133,10 +165,7 @@ const JournalPage: React.FC = () => {
             <button id="confirm-delete" onClick={handleDeleteEntry}>
               Yes
             </button>
-            <button
-              id="cancel-delete"
-              onClick={() => setIsDeleteConfirmVisible(false)}
-            >
+            <button id="cancel-delete" onClick={hideDeleteConfirmation}>
               No
             </button>
           </div>
