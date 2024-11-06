@@ -9,7 +9,7 @@ const ProfilePage: React.FC = () => {
     const router = useRouter();
 
     const userInfo = {
-        email: 'john@example.com',
+        email: localStorage.getItem("email"),
         coins: 120,
         streak: 15,
         exp: 950,
