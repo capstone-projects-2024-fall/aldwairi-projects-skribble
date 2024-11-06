@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './styles.css'; // Journal Page Styles
+
 interface JournalEntry {
   title: string;
   content: string;
@@ -28,7 +29,13 @@ const JournalPage: React.FC = () => {
   }, [entries]);
 
   const getRandomImage = (): string => {
-    const images = ['../assets/images/bear/bear1.png', '../assets/images/bear/bear2.png', '../assets/images/bear/bear3.png', '../assets/images/bear/bear4.png', '../assets/images/bear/bear5.png'];
+    const images = [
+      '../assets/images/bear/bear1.png',
+      '../assets/images/bear/bear2.png',
+      '../assets/images/bear/bear3.png',
+      '../assets/images/bear/bear4.png',
+      '../assets/images/bear/bear5.png',
+    ];
     return images[Math.floor(Math.random() * images.length)];
   };
 
@@ -107,19 +114,29 @@ const JournalPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Display Selected Prompt */}
+      {selectedPrompt && (
+        <div id="selected-prompt">
+          <p>Prompt: {selectedPrompt}</p>
+        </div>
+      )}
+
       {/* Journal Entry Form */}
       {isFormVisible && (
         <form id="journal-form" onSubmit={saveEntry}>
           <input type="text" id="title" placeholder="Entry Title" required />
           <textarea
             id="content"
-            placeholder={`Write your journal entry about: ${selectedPrompt || "your day"}...`}
+            placeholder={`Write your journal entry about: ${selectedPrompt || 'your day'}...`}
             rows={5}
             required
           />
           <div className="button-container">
             <button type="submit" className="styled-button">
               Save Entry
+            </button>
+            <button id="new-entry-button" onClick={openModal}>
+              Select Prompt
             </button>
             <button type="button" id="cancel-entry-button" className="styled-button" onClick={cancelNewEntryForm}>
               Cancel
@@ -172,19 +189,12 @@ const JournalPage: React.FC = () => {
         </div>
       )}
 
-      {/* Log Out Button */}
-      <button id="logout-button" style={{ display: entries.length > 0 ? 'block' : 'none' }}>
-        Log Out
-      </button>
-
       {/* Modal for Prompt Selection */}
       {isModalOpen && (
-        <div id="myModal" className="modal">
+        <div id="myModal" className={`modal ${isModalOpen ? 'show' : ''}`}>
           <div className="modal-content">
             <div className="modal-header">
-              <span className="close" onClick={closeModal}>
-                &times;
-              </span>
+              <span className="close" onClick={closeModal}>&times;</span>
               <h2>Select One of These Prompts to Get Started</h2>
             </div>
             <div className="modal-body">
@@ -198,11 +208,6 @@ const JournalPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Button to Open Prompt Modal */}
-      <button id="myBtn" onClick={openModal}>
-        Select Prompt
-      </button>
     </div>
   );
 };
