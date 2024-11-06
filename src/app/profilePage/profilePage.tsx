@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import './styles.css';
+import { logOut } from '../logOut'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfilePage: React.FC = () => {
     const [avatarName, setAvatarName] = useState(''); // State for new avatar name
@@ -30,6 +32,18 @@ const ProfilePage: React.FC = () => {
 
     const changeBackgroundColor = (color: string) => {
         setBackgroundColor(color);
+    };
+
+    const handleDelete = async () => {
+        try {
+            // Remove email and password from AsyncStorage
+            await AsyncStorage.removeItem("email");
+            await AsyncStorage.removeItem("password");
+            console.log("User logged out successfully.");
+            router.push("/"); // Navigate back to the sign-in page or wherever needed
+        } catch (error) {
+            console.error("Failed to remove user data", error);
+        }
     };
 
     const goToPage = (path: string) => {
@@ -129,6 +143,15 @@ const ProfilePage: React.FC = () => {
             <div className="back-button">
                 <button onClick={() => goToPage('../homePage')}>Back</button>
             </div>
+
+            {/* Log Out Button */}
+            <button id="logout-button" onClick={logOut}>
+                Log Out
+            </button>
+            {/* Delete Button */}
+            <button id="logout-button" onClick={handleDelete}>
+                Delete
+            </button>
         </div>
     );
 };

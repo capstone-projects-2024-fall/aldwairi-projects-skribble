@@ -93,6 +93,7 @@ const JournalPage: React.FC = () => {
         setIsDeleteConfirmVisible(false);
     };
 
+
     return (
         <div id="journal-container">
             {/* Logo Image */}
@@ -173,10 +174,6 @@ const JournalPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Log Out Button */}
-            <button id="logout-button" style={{ display: entries.length > 0 ? 'block' : 'none' }}>
-                Log Out
-            </button>
 
             {/* Modal for Prompt Selection */}
             {isModalOpen && (

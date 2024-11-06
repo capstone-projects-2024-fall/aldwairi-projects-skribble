@@ -20,6 +20,10 @@ export default function LogIn() {
 
   const handleAuth = async () => {
     if (isSignUp) {
+      if (!email || !password) {
+        setError("Email and password cannot be blank.");
+        return; // Stop further execution if fields are empty
+      }
       // Sign up logic (saving credentials)
       try {
         await AsyncStorage.setItem("email", email);
