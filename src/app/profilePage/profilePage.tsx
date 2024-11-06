@@ -72,12 +72,12 @@ const ProfilePage: React.FC = () => {
 
             {/* Go to Parental Homepage */}
             <div className="parental-link">
-                <button onClick={() => goToPage('../parentPortal/parentPortal.html')}>Parental Controls</button>
+                <button onClick={() => goToPage('../parentalPortal/parentalPortal')}>Parental Controls</button>
             </div>
 
             {/* Go to Homepage */}
             <div className="back-button">
-                <button onClick={() => goToPage('../homePage/homePage.html')}>Back</button>
+                <button onClick={() => goToPage('../homePage')}>Back</button>
             </div>
         </div>
     );
