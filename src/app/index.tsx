@@ -1,3 +1,5 @@
+// SIGN UP AND LOG IN
+
 import React, { useState } from "react";
 import { Text, View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
@@ -19,7 +21,7 @@ export default function LogIn() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Email"

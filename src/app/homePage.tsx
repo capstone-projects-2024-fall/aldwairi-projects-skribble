@@ -10,18 +10,18 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div className="home-container"> 
+        <div className="home-container">
             <div className="avatar">
                 <img src="path/to/avatar.png" alt="User Avatar" />
             </div>
 
             <div className="button-container">
-                <button onClick={() => goToPage('/chatPage')}>Chat Page</button>
-                <button onClick={() => goToPage('/closetPage')}>Closet Page</button>
-                <button onClick={() => goToPage('/friendsPage')}>Friend Page</button>
+                <button onClick={() => goToPage('./chatPage/chatPage')}>Chat Page</button>
+                <button onClick={() => goToPage('./closetPage/closetPage')}>Closet Page</button>
+                <button onClick={() => goToPage('./friendsPage/friendsPage')}>Friend Page</button>
                 <button onClick={() => goToPage('./profilePage/profilePage')}>Profile Page</button>
-                <button onClick={() => goToPage('/storePage')}>Store Page</button>
-                <button onClick={() => goToPage('/uploadsPage')}>Journal Page</button>
+                <button onClick={() => goToPage('./storePage/storePage')}>Store Page</button>
+                <button onClick={() => goToPage('./journalPage/journalPage')}>Journal Page</button>
             </div>
         </div>
     );
