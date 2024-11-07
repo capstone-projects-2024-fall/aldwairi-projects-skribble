@@ -51,14 +51,14 @@ const JournalPage = () => {
         const form = event.target as HTMLFormElement;
         const title = (form.elements.namedItem('title') as HTMLInputElement).value;
         const content = (form.elements.namedItem('content') as HTMLTextAreaElement).value;
-        
+
         const newEntry: JournalEntry = {
             title,
             content,
             date: new Date().toISOString(),
             imagePath: getRandomImage(),
         };
-        
+
         setEntries([newEntry, ...entries]);
         setIsFormVisible(false);
         setSelectedPrompt(null);
@@ -204,7 +204,10 @@ const JournalPage = () => {
                                     'How are you feeling today?',
                                     'What did you do today?',
                                     'Where did you go today?',
-                                    'What are you sad about?'
+                                    'What are you sad about?',
+                                    'Take deep breaths for a bit...',
+                                    'Close your eyes and meditate',
+                                    'Bubble exercise: capture the bad thoughts in a bubble within your head and let them fly up!'
                                 ].map((prompt, index) => (
                                     <button
                                         key={index}
