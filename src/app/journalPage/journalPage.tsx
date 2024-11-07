@@ -102,7 +102,16 @@ const JournalPage = () => {
             {!isFormVisible && !currentEntry && (
                 <div className="center-button-container">
                     <button id="new-entry-button" onClick={showNewEntryForm}>
-                        New Entry
+                        New Entry <div>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round" stroke-linejoin="round"
+                                width="24" height="24"
+                                stroke-width="2">
+                                <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path> <path d="M13.5 6.5l4 4"></path> <path d="M16 19h6"></path> <path d="M19 16v6"></path> </svg>
+                        </div>
                     </button>
                 </div>
             )}
@@ -128,14 +137,38 @@ const JournalPage = () => {
                         />
                         <div className="button-container">
                             <button type="submit" className="styled-button">
-                                Save Entry
+                                Save Entry <div>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        width="24" height="24"
+                                        stroke-width="2">
+                                        <path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 2.333 2.333 3.5 4 3.5h2.5"></path> <path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2z"></path> <path d="M16 7h4"></path>
+                                    </svg>
+                                </div>
                             </button>
                             <button
                                 type="button"
                                 className="styled-button"
                                 onClick={() => setIsModalOpen(true)}
                             >
-                                Select Prompt
+                                Select Prompt <div>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        width="24" height="24"
+                                        stroke-width="2">
+                                        <path d="M3 12l3 0"></path> <path d="M12 3l0 3"></path> <path d="M7.8 7.8l-2.2 -2.2"></path> <path d="M16.2 7.8l2.2 -2.2"></path> <path d="M7.8 16.2l-2.2 2.2"></path> <path d="M12 12l9 3l-4 2l-2 4l-3 -9"></path>
+                                    </svg>
+                                </div>
                             </button>
                             <button
                                 type="button"
@@ -162,7 +195,17 @@ const JournalPage = () => {
                             className="styled-button delete-button"
                             onClick={() => showDeleteConfirmation(entries.indexOf(currentEntry))}
                         >
-                            Delete Entry
+                            Delete Entry <div>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-linecap="round" stroke-linejoin="round"
+                                    width="24" height="24"
+                                    stroke-width="2"> <path d="M14 3v4a1 1 0 0 0 1 1h4"></path> <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path> <path d="M10 12l4 4m0 -4l-4 4"></path>
+                                </svg>
+                            </div>
                         </button>
                     </div>
                 </div>

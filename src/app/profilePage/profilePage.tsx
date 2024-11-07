@@ -141,16 +141,50 @@ const ProfilePage: React.FC = () => {
 
             {/* Go to Homepage */}
             <div className="back-button">
-                <button onClick={() => goToPage('../homePage')}>Back</button>
+                <button onClick={() => goToPage('../homePage')}>Back <div>
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        width="24" height="24"
+                        stroke-width="2">
+                        <path d="M5 12l-2 0l9 -9l9 9l-2 0"></path> <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path> <path d="M10 12h4v4h-4z"></path>
+                    </svg>
+                </div></button>
             </div>
 
             {/* Log Out Button */}
             <button id="logout-button" onClick={logOut}>
-                Log Out
+                Log Out <div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        width="24" height="24"
+                        stroke-width="2">
+                        <path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2"></path> <path d="M15 12h-12l3 -3"></path> <path d="M6 15l-3 -3"></path>
+                    </svg>
+                </div>
             </button>
             {/* Delete Button */}
             <button id="logout-button" onClick={handleDelete}>
-                Delete
+                Delete <div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        width="24" height="24"
+                        stroke-width="2">
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path> <path d="M9 12l6 0"></path>
+                    </svg>
+                </div>
             </button>
         </div>
     );
