@@ -10,7 +10,7 @@ export default function storePage() {
         alignItems: "center",
       }}
     >
-      <Text>logHistoryPage</Text>
+      <Text>storePage</Text>
     </View>
   );
 }
