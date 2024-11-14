@@ -108,20 +108,54 @@ const ProfilePage: React.FC = () => {
                 <div className="coins-info">
                     <p><strong>Coins:</strong> <span id="userCoins">{userInfo.coins}</span></p>
                     <div className="coin-icon">
-                        {/* Coin Icon */}
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            width={24}
+                            height={24}
+                            strokeWidth={2}>
+                            <path d="M15 11v.01"></path> <path d="M5.173 8.378a3 3 0 1 1 4.656 -1.377"></path> <path d="M16 4v3.803a6.019 6.019 0 0 1 2.658 3.197h1.341a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-1.342c-.336 .95 -.907 1.8 -1.658 2.473v2.027a1.5 1.5 0 0 1 -3 0v-.583a6.04 6.04 0 0 1 -1 .083h-4a6.04 6.04 0 0 1 -1 -.083v.583a1.5 1.5 0 0 1 -3 0v-2l0 -.027a6 6 0 0 1 4 -10.473h2.5l4.5 -3h0z"></path>
+                        </svg>
                     </div>
                 </div>
 
                 <div className="streak-info">
                     <p><strong>Streak:</strong> <span id="userStreak">{userInfo.streak}</span></p>
                     <div className="streak-icon">
-                        {/* Streak Icon */}
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="4 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            width={24}
+                            height={24}
+                            strokeWidth={2}
+                        >
+                            <path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z"></path>
+                        </svg>
                     </div>
                 </div>
+                
                 <div className="exp-info">
                     <p><strong>EXP:</strong> <span id="userExp">{userInfo.exp}</span></p>
                     <div className="exp-icon">
-                        {/* EXP Icon */}
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            width={24} height={24}
+                            strokeWidth={2}>
+                            <path d="M15.5 18.5l-3 1.5l.5 -3.5l-2 -2l3 -.5l1.5 -3l1.5 3l3 .5l-2 2l.5 3.5z"></path> <path d="M4 4l7 7"></path> <path d="M9 4l3.5 3.5"></path> <path d="M4 9l3.5 3.5"></path>
+                        </svg>
                     </div>
                 </div>
             </div>
