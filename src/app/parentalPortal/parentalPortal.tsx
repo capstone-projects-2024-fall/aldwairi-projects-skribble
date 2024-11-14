@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import styles from './styles';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Switch,
+  ScrollView,
+  Platform 
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import './styles.css';
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
@@ -12,8 +22,8 @@ const ParentalControlPanel: React.FC = () => {
     const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
     const [enableChat, setEnableChat] = useState(true);
     const [allowMediaSharing, setAllowMediaSharing] = useState(true);
-    const [timeLimit, setTimeLimit] = useState(2); // Default 2 hours
-    const [backgroundColor, setBackgroundColor] = useState('#FFFFFF'); // Default background color
+    const [timeLimit, setTimeLimit] = useState('2'); // Changed to string for TextInput
+    const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
 
     // Use Effect to load saved settings from AsyncStorage
     useEffect(() => {
@@ -30,35 +40,34 @@ const ParentalControlPanel: React.FC = () => {
                 if (savedAllowAddViewFriends !== null) setAllowAddViewFriends(JSON.parse(savedAllowAddViewFriends));
                 if (savedEnableChat !== null) setEnableChat(JSON.parse(savedEnableChat));
                 if (savedAllowMediaSharing !== null) setAllowMediaSharing(JSON.parse(savedAllowMediaSharing));
-                if (savedTimeLimit) setTimeLimit(Number(savedTimeLimit));
-                if (savedBackgroundColor) setBackgroundColor(savedBackgroundColor); // Apply the saved background color
+                if (savedTimeLimit) setTimeLimit(savedTimeLimit);
+                if (savedBackgroundColor) setBackgroundColor(savedBackgroundColor);
             } catch (error) {
                 console.error('Failed to load settings from AsyncStorage:', error);
             }
         };
 
         loadSettings();
-    }, []); // Empty dependency array means this runs only once on component mount
+    }, []);
 
     // Change the email address
     const changeEmail = () => {
         if (newEmail) {
             setEmail(newEmail);
-            setNewEmail(''); // Clear input field after setting
-            console.log(`Email changed to: ${email}`);
+            setNewEmail('');
+            console.log(`Email changed to: ${newEmail}`);
         }
     };
 
-    // Save all settings including background color
+    // Save all settings
     const saveControls = async () => {
         try {
-            // Save the parental controls to AsyncStorage
             await AsyncStorage.setItem('email', email);
             await AsyncStorage.setItem('allowAddViewFriends', JSON.stringify(allowAddViewFriends));
             await AsyncStorage.setItem('enableChat', JSON.stringify(enableChat));
             await AsyncStorage.setItem('allowMediaSharing', JSON.stringify(allowMediaSharing));
-            await AsyncStorage.setItem('timeLimit', timeLimit.toString());
-            await AsyncStorage.setItem('backgroundColor', backgroundColor); // Save background color
+            await AsyncStorage.setItem('timeLimit', timeLimit);
+            await AsyncStorage.setItem('backgroundColor', backgroundColor);
 
             console.log('Parental controls saved');
         } catch (error) {
@@ -66,130 +75,103 @@ const ParentalControlPanel: React.FC = () => {
         }
     };
 
-    // Function to handle background color change
-    const changeBackgroundColor = async (color: string) => {
-        setBackgroundColor(color);
-
-        try {
-            // Save the selected background color in AsyncStorage
-            await AsyncStorage.setItem('backgroundColor', color);
-            console.log(`Background color updated to: ${color}`);
-        } catch (error) {
-            console.error('Failed to save background color to AsyncStorage', error);
-        }
-    };
-
     const goToProfilePage = () => {
-        // Optionally save the settings before navigating
         saveControls();
         router.push('/profilePage/profilePage');
     };
 
-    // Function to get a darker shade of a given color
-    const getDarkerShade = (color: string): string => {
-        // Convert HEX to RGB
-        const hex = color.replace('#', '');
-        let r = parseInt(hex.substring(0, 2), 16);
-        let g = parseInt(hex.substring(2, 4), 16);
-        let b = parseInt(hex.substring(4, 6), 16);
-
-        // Darken each component by 20% (you can adjust this percentage)
-        r = Math.max(0, r - 20);
-        g = Math.max(0, g - 20);
-        b = Math.max(0, b - 20);
-
-        // Convert back to hex
-        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    };
-
-    const buttonStyle = {
-        backgroundColor: getDarkerShade(backgroundColor),
-        border: '2px solid white',
-        borderRadius: '12px',
-        color: 'white',
-        padding: '10px 20px',
-        fontSize: '16px',
-        margin: '10px',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-    };
-
     return (
-        <div className="control-panel-container" style={{ backgroundColor }}>
-            <h1>Parental Control Panel</h1>
+        <ScrollView style={[styles.container, { backgroundColor }]}>
+            <Text style={styles.title}>Parental Control Panel</Text>
 
             {/* Email Section */}
-            <div className="email-section">
-                <p><strong>Current Email:</strong> <span>{email}</span></p>
-                <label htmlFor="newEmail">Change Email:</label>
-                <input
-                    type="email"
-                    id="newEmail"
+            <View style={styles.section}>
+                <Text style={styles.currentEmail}>
+                    <Text style={styles.bold}>Current Email: </Text>
+                    {email}
+                </Text>
+                <Text style={styles.label}>Change Email:</Text>
+                <TextInput
+                    style={styles.input}
                     placeholder="Enter new email"
                     value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
+                    onChangeText={setNewEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                 />
-                <button style={buttonStyle} onClick={changeEmail}>Change Email</button>
-            </div>
+                <TouchableOpacity 
+                    style={styles.button}
+                    onPress={changeEmail}
+                >
+                    <Text style={styles.buttonText}>Change Email</Text>
+                </TouchableOpacity>
+            </View>
 
             {/* Feature Controls */}
-            <div className="controls-section">
-                <h2>Feature Controls</h2>
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Feature Controls</Text>
 
                 {/* Add/View Friends */}
-                <div className="control-item">
-                    <input
-                        type="checkbox"
-                        id="addViewFriends"
-                        checked={allowAddViewFriends}
-                        onChange={(e) => setAllowAddViewFriends(e.target.checked)}
+                <View style={styles.controlItem}>
+                    <Text style={styles.label}>Allow Add/View Friends</Text>
+                    <Switch
+                        value={allowAddViewFriends}
+                        onValueChange={setAllowAddViewFriends}
+                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                        thumbColor={allowAddViewFriends ? '#2196F3' : '#f4f3f4'}
                     />
-                    <label htmlFor="addViewFriends">Allow Add/View Friends</label>
-                </div>
+                </View>
 
                 {/* Enable Chat Feature */}
-                <div className="control-item">
-                    <input
-                        type="checkbox"
-                        id="enableChat"
-                        checked={enableChat}
-                        onChange={(e) => setEnableChat(e.target.checked)}
+                <View style={styles.controlItem}>
+                    <Text style={styles.label}>Enable Chat Feature</Text>
+                    <Switch
+                        value={enableChat}
+                        onValueChange={setEnableChat}
+                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                        thumbColor={enableChat ? '#2196F3' : '#f4f3f4'}
                     />
-                    <label htmlFor="enableChat">Enable Chat Feature</label>
-                </div>
+                </View>
 
                 {/* Allow Media Sharing */}
-                <div className="control-item">
-                    <input
-                        type="checkbox"
-                        id="mediaSharing"
-                        checked={allowMediaSharing}
-                        onChange={(e) => setAllowMediaSharing(e.target.checked)}
+                <View style={styles.controlItem}>
+                    <Text style={styles.label}>Allow Media Sharing</Text>
+                    <Switch
+                        value={allowMediaSharing}
+                        onValueChange={setAllowMediaSharing}
+                        trackColor={{ false: '#767577', true: '#81b0ff' }}
+                        thumbColor={allowMediaSharing ? '#2196F3' : '#f4f3f4'}
                     />
-                    <label htmlFor="mediaSharing">Allow Media Sharing</label>
-                </div>
+                </View>
 
                 {/* Set Time Limits */}
-                <div className="control-item">
-                    <label htmlFor="timeLimit">Set Time Limit (hours per day):</label>
-                    <input
-                        type="number"
-                        id="timeLimit"
-                        min="0"
-                        max="24"
+                <View style={styles.controlItem}>
+                    <Text style={styles.label}>Set Time Limit (hours per day):</Text>
+                    <TextInput
+                        style={styles.timeInput}
                         value={timeLimit}
-                        onChange={(e) => setTimeLimit(Number(e.target.value))}
+                        onChangeText={setTimeLimit}
+                        keyboardType="numeric"
+                        maxLength={2}
                     />
-                </div>
+                </View>
 
-                <button style={buttonStyle} onClick={saveControls}>Save Settings</button>
-            </div>
+                <TouchableOpacity 
+                    style={styles.button}
+                    onPress={saveControls}
+                >
+                    <Text style={styles.buttonText}>Save Settings</Text>
+                </TouchableOpacity>
+            </View>
 
-            {/* Go to Profile Page */}
-            <div className="back-button">
-                <button style={buttonStyle} onClick={goToProfilePage}>Back</button>
-            </div>
-        </div>
+            {/* Back Button */}
+            <TouchableOpacity 
+                style={[styles.button, styles.backButton]}
+                onPress={goToProfilePage}
+            >
+                <Text style={styles.buttonText}>Back</Text>
+            </TouchableOpacity>
+        </ScrollView>
     );
 };
 
