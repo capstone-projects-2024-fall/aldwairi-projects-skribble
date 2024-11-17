@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
+import './styles.css';
 
 const HomePage: React.FC = () => {
     const router = useRouter();
@@ -13,13 +14,12 @@ const HomePage: React.FC = () => {
 
     // Function to make the background color a few shades darker
     const getDarkerShade = (color: string): string => {
-        // Convert HEX to RGB
         const hex = color.replace('#', '');
         let r = parseInt(hex.substring(0, 2), 16);
         let g = parseInt(hex.substring(2, 4), 16);
         let b = parseInt(hex.substring(4, 6), 16);
 
-        // Darken each component by 20% (you can adjust this percentage)
+        // Darken each component by 20% 
         r = Math.max(0, r - 30);
         g = Math.max(0, g - 30);
         b = Math.max(0, b - 30);
@@ -42,22 +42,12 @@ const HomePage: React.FC = () => {
 
     // Function to navigate to another page
     const goToPage = (page: string) => {
-        router.push(page);
+        router.push(page as any);
     };
 
     // Button style based on background color
     const buttonStyle = {
         backgroundColor: getDarkerShade(backgroundColor),
-        border: '2px solid white',
-        borderRadius: '12px',
-        color: 'white',
-        padding: '10px 20px',
-        fontSize: '16px',
-        margin: '10px',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-        display: 'flex',
-        alignItems: 'center',
     };
 
     return (
@@ -65,36 +55,17 @@ const HomePage: React.FC = () => {
             className="home-container"
             style={{
                 backgroundColor,
-                minHeight: '100vh', // Ensure full-screen background
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                padding: '20px',
             }}
         >
-            {/* Avatar */}
-            <div className="avatar" style={{ marginBottom: '20px' }}>
-                <img
-                    src="path/to/avatar.png"
-                    alt="User Avatar"
-                    style={{ width: '100px', height: '100px', borderRadius: '50%' }}
-                />
+            <div className="avatar">
+                <img src="path/to/avatar.png" alt="User Avatar" />
             </div>
 
-            {/* Button Container - Display all buttons */}
-            <div
-                className="button-container"
-                style={{
-                    display: 'flex',
-                    flexWrap: 'wrap', // Allow buttons to wrap to the next line if necessary
-                    justifyContent: 'center',
-                    gap: '15px', // Add some space between buttons
-                    marginTop: '20px',
-                }}
-            >
-                <button style={buttonStyle} onClick={() => goToPage('./chatPage/chatPage')}>
+            <div className="button-container">
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() => goToPage('/chatPage/chatPage')}>
                     Chat
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -115,8 +86,10 @@ const HomePage: React.FC = () => {
                         </svg>
                     </div>
                 </button>
-
-                <button style={buttonStyle} onClick={() => goToPage('./closetPage/closetPage')}>
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() =>  goToPage('/closetPage/closetPage')}>
                     Closet
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -134,8 +107,10 @@ const HomePage: React.FC = () => {
                         </svg>
                     </div>
                 </button>
-
-                <button style={buttonStyle} onClick={() => goToPage('./friendsPage/friendsPage')}>
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() =>  goToPage('/friendsPage/friendsPage')}>
                     Friends
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -156,8 +131,10 @@ const HomePage: React.FC = () => {
                         </svg>
                     </div>
                 </button>
-
-                <button style={buttonStyle} onClick={() => goToPage('./profilePage/profilePage')}>
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() => goToPage('/profilePage/profilePage')}>
                     Profile
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -177,8 +154,10 @@ const HomePage: React.FC = () => {
                         </svg>
                     </div>
                 </button>
-
-                <button style={buttonStyle} onClick={() => goToPage('./storePage/storePage')}>
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() =>  goToPage('/storePage/storePage')}>
                     Store
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -199,8 +178,10 @@ const HomePage: React.FC = () => {
                         </svg>
                     </div>
                 </button>
-
-                <button style={buttonStyle} onClick={() => goToPage('./journalPage/journalPage')}>
+                <button 
+                className="button" 
+                style={buttonStyle} 
+                onClick={() => goToPage('/journalPage/journalPage')}>
                     Journal
                     <div style={{ marginLeft: '10px' }}>
                         <svg
@@ -219,7 +200,7 @@ const HomePage: React.FC = () => {
                             <path d="M13 12l2 0"></path>
                         </svg>
                     </div>
-                </button>
+                    </button>
             </div>
         </div>
     );
