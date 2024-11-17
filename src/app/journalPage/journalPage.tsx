@@ -71,7 +71,7 @@ const JournalPage = () => {
         const form = event.target as HTMLFormElement;
         const title = (form.elements.namedItem('title') as HTMLInputElement).value;
         const content = (form.elements.namedItem('content') as HTMLTextAreaElement).value;
-
+        
         const newEntry: JournalEntry = {
             title,
             content,
