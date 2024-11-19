@@ -65,7 +65,7 @@ const ProfilePage: React.FC = () => {
     };
 
     const goToPage = (path: string) => {
-        router.push(path);
+        router.push(path as any);
     };
 
     // Function to get a darker shade of a given color
@@ -188,7 +188,7 @@ const ProfilePage: React.FC = () => {
 
             {/* Go to Homepage */}
             <div className="back-button">
-                <button style={buttonStyle} onClick={() => goToPage('../homePage')}>Back 
+                <button style={buttonStyle} onClick={() => goToPage('../homePage/homePage')}>Back 
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"

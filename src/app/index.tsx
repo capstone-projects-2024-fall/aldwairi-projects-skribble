@@ -29,7 +29,7 @@ export default function LogIn() {
         await AsyncStorage.setItem("email", email);
         await AsyncStorage.setItem("password", password);
         console.log("User signed up successfully.");
-        router.push("/homePage");
+        router.push("/homePage/homePage");
       } catch (error) {
         console.error("Failed to save user data", error);
       }
@@ -41,7 +41,7 @@ export default function LogIn() {
       if (storedEmail === email && storedPassword === password) {
         console.log("User signed in successfully.");
         setError(""); // Clear any previous error message
-        router.push("/homePage"); // Navigate to home screen
+        router.push("/homePage/homePage"); // Navigate to home screen
       } else {
         console.log("Invalid credentials.");
         setError("Invalid email or password. Please try again.");

@@ -139,15 +139,7 @@ const JournalPage = () => {
     };
 
     const buttonStyle = {
-        backgroundColor: getDarkerShade(backgroundColor),
-        border: '2px solid white',
-        borderRadius: '12px',
-        color: 'white',
-        padding: '10px 20px',
-        fontSize: '16px',
-        margin: '10px',
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        backgroundColor: getDarkerShade(backgroundColor)
     };
 
     return (
@@ -159,7 +151,7 @@ const JournalPage = () => {
             {/* New Entry Button */}
             {!isFormVisible && !currentEntry && (
                 <div className="center-button-container">
-                    <button id="new-entry-button" style={buttonStyle} onClick={showNewEntryForm}>
+                    <button className="button" id="new-entry-button" style={buttonStyle} onClick={showNewEntryForm}>
                         New Entry
                         <div>
                             <svg
@@ -200,7 +192,7 @@ const JournalPage = () => {
                             className="form-textarea"
                         />
                         <div className="button-container">
-                            <button type="submit" style={buttonStyle}>
+                            <button className="button" type="submit" style={buttonStyle}>
                                 Save Entry
                                 <div>
                                     <svg
@@ -219,6 +211,7 @@ const JournalPage = () => {
                                 </div>
                             </button>
                             <button
+                                className="button"
                                 type="button"
                                 style={buttonStyle}
                                 onClick={() => setIsModalOpen(true) }
@@ -244,6 +237,7 @@ const JournalPage = () => {
                                 </div>
                             </button>
                             <button
+                                className="button"
                                 type="button"
                                 style={buttonStyle}
                                 onClick={cancelNewEntryForm}
@@ -262,11 +256,12 @@ const JournalPage = () => {
                     <p>{currentEntry.content}</p>
                     <small>{new Date(currentEntry.date).toLocaleString()}</small>
                     <div className="button-container">
-                        <button style={buttonStyle} onClick={handleBack}>
+                        <button className="button" style={buttonStyle} onClick={handleBack}>
                             Back
                         </button>
                         <button
-                            style={{ ...buttonStyle, backgroundColor: '#F44336' }} // Red for delete button
+                            className="button"
+                            style={ buttonStyle } // Red for delete button
                             onClick={() => showDeleteConfirmation(entries.indexOf(currentEntry))}
                         >
                             Delete Entry
@@ -317,10 +312,10 @@ const JournalPage = () => {
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <div className="modal-header">
+                        <div className="modal-header" style={ buttonStyle }>
                             <h2>Choose a Writing Prompt</h2>
                             <button
-                                className="modal-close-button"
+                            className="button"
                                 onClick={() => setIsModalOpen(false)}
                             >
                                 ×
@@ -363,12 +358,14 @@ const JournalPage = () => {
                         <p>Are you sure you want to delete this entry?</p>
                         <div className="button-container">
                             <button
-                                style={{ ...buttonStyle, backgroundColor: '#F44336' }}
+                                className="button"
+                                style={buttonStyle}
                                 onClick={handleDeleteEntry}
                             >
                                 Yes, Delete
                             </button>
                             <button
+                                className="button"
                                 style={buttonStyle}
                                 onClick={hideDeleteConfirmation}
                             >
