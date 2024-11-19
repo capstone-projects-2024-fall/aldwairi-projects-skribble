@@ -1,4 +1,4 @@
-package src.frontend.Encryption;
+package src.Encryption;
 
 public record Pair<T, U>(T first, U second) {
 
