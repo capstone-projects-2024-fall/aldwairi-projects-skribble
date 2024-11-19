@@ -11,6 +11,7 @@ interface JournalEntry {
 const JournalPage = () => {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [isFormVisible, setIsFormVisible] = useState(false);
+    const [isGifVisible, setIsGifVisible] = useState(false);
     const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
     const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
     const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
@@ -71,7 +72,7 @@ const JournalPage = () => {
         const form = event.target as HTMLFormElement;
         const title = (form.elements.namedItem('title') as HTMLInputElement).value;
         const content = (form.elements.namedItem('content') as HTMLTextAreaElement).value;
-        
+
         const newEntry: JournalEntry = {
             title,
             content,
@@ -82,7 +83,16 @@ const JournalPage = () => {
         setEntries([newEntry, ...entries]);
         setIsFormVisible(false);
         setSelectedPrompt(null);
+        rewardGif();
     };
+
+    function rewardGif(): void {
+        setIsGifVisible(true);
+        setTimeout(() => {
+            setIsGifVisible(false); // Hide the GIF after 3 seconds
+        }, 3000); // Duration of the GIF animation
+    }    
+
 
     const handleViewEntry = (index: number) => {
         setCurrentEntry(entries[index]);
@@ -211,7 +221,7 @@ const JournalPage = () => {
                             <button
                                 type="button"
                                 style={buttonStyle}
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => setIsModalOpen(true) }
                             >
                                 Select Prompt
                                 <div>
@@ -297,6 +307,11 @@ const JournalPage = () => {
                     ))}
                 </div>
             )}
+
+            {/* Gif */}
+            <div id="gif-overlay" className={isGifVisible ? 'visible' : ''}>
+                <img src="../assets/gifs/award.gif" alt="Award" />
+            </div>
 
             {/* Writing Prompt Modal */}
             {isModalOpen && (
