@@ -1,45 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from '../journalPage/styles';
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    ScrollView,
-    Image,
-    Modal,
-    StyleSheet,
-    Dimensions,
-    SafeAreaView,
-    Alert,
-    Platform
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Modal,
+  SafeAreaView,
+  Alert,
+  Animated
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface JournalEntry {
-    title: string;
-    content: string;
-    date: string;
-    imageIndex: number; // Changed from imagePath to imageIndex
-  }
+  title: string;
+  content: string;
+  date: string;
+  imageIndex: number; // Changed from imagePath to imageIndex
+}
 
 const JournalPage = () => {
-    const [entries, setEntries] = useState<JournalEntry[]>([]);
-    const [isFormVisible, setIsFormVisible] = useState(false);
-    const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
-    const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
-    const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
-    const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
+  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+  const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
+  const [isGifVisible, setIsGifVisible] = useState(false);
+  const fadeAnim = useState(new Animated.Value(0))[0];
 
-    const BEAR_IMAGES = [
-        require('../../assets/images/bear/bear1.png'),
-        require('../../assets/images/bear/bear2.png'),
-        require('../../assets/images/bear/bear3.png'),
-        require('../../assets/images/bear/bear4.png'),
-        require('../../assets/images/bear/bear5.png')
-      ];
+  const BEAR_IMAGES = [
+    require('../../assets/images/bear/bear1.png'),
+    require('../../assets/images/bear/bear2.png'),
+    require('../../assets/images/bear/bear3.png'),
+    require('../../assets/images/bear/bear4.png'),
+    require('../../assets/images/bear/bear5.png')
+  ];
   // Load journal entries from AsyncStorage on component mount
   useEffect(() => {
     const loadEntries = async () => {
@@ -76,6 +76,26 @@ const JournalPage = () => {
     saveEntries();
   }, [entries]);
 
+  // Function to show GIF animation
+  const showRewardGif = () => {
+    setIsGifVisible(true);
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2000), // Show GIF for 2 seconds
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      setIsGifVisible(false);
+    });
+  };
+
   const getRandomImageIndex = (): number => {
     return Math.floor(Math.random() * BEAR_IMAGES.length);
   };
@@ -102,17 +122,18 @@ const JournalPage = () => {
     }
 
     const newEntry: JournalEntry = {
-        title: currentEntry.title,
-        content: currentEntry.content,
-        date: new Date().toISOString(),
-        imageIndex: getRandomImageIndex(), // Use imageIndex instead of imagePath
-      };
-
-      setEntries([newEntry, ...entries]);
-      setIsFormVisible(false);
-      setSelectedPrompt(null);
-      setCurrentEntry(null);
+      title: currentEntry.title,
+      content: currentEntry.content,
+      date: new Date().toISOString(),
+      imageIndex: getRandomImageIndex(),
     };
+
+    setEntries([newEntry, ...entries]);
+    setIsFormVisible(false);
+    setSelectedPrompt(null);
+    setCurrentEntry(null);
+    showRewardGif();
+  };
 
   const handleViewEntry = (index: number) => {
     setCurrentEntry(entries[index]);
@@ -165,14 +186,14 @@ const JournalPage = () => {
         <TouchableOpacity style={styles.outlinedButton} onPress={saveEntry}>
           <Text style={styles.buttonText}>Save Entry</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.outlinedButton, styles.promptSelectButton]} 
+        <TouchableOpacity
+          style={[styles.outlinedButton, styles.promptSelectButton]}
           onPress={() => setIsModalOpen(true)}
         >
           <Text style={styles.buttonText}>Select Prompt</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.outlinedButton, styles.cancelButton]} 
+        <TouchableOpacity
+          style={[styles.outlinedButton, styles.cancelButton]}
           onPress={cancelNewEntryForm}
         >
           <Text style={styles.buttonText}>Cancel</Text>
@@ -184,8 +205,8 @@ const JournalPage = () => {
   const renderEntry = () => (
     <View style={styles.fullEntry}>
       <View style={styles.entryHeader}>
-        <TouchableOpacity 
-          style={styles.backButton} 
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={handleBack}
         >
           <Text style={styles.backButtonText}>← Back</Text>
@@ -216,8 +237,8 @@ const JournalPage = () => {
           onPress={() => handleViewEntry(index)}
         >
           <View style={styles.imageContainer}>
-            <Image 
-              source={BEAR_IMAGES[entry.imageIndex]} 
+            <Image
+              source={BEAR_IMAGES[entry.imageIndex]}
               style={styles.entryImage}
             />
           </View>
@@ -232,6 +253,29 @@ const JournalPage = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Reward GIF Overlay */}
+      {isGifVisible && (
+        <Animated.View
+          style={[
+            {
+              opacity: fadeAnim,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }
+          ]}
+        >
+          <Image
+            source={require('../../assets/gifs/award.gif')}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      )}
       <View style={styles.logoContainer}>
         <Image
           source={require('../../assets/images/GreenPinkLogo.png')}
