@@ -9,29 +9,32 @@
 </head>
 <body>
 
-<h1>SKRIBBLE</h1>
-
-<div id="login-container" style="display: none;">
-  <div class="center-container">
-    <input type="text" id="userName" placeholder="Username" required>
-    <input type="password" id="userPassword" placeholder="Password" required>
-    <button onclick="login()">Submit</button>
-    <p id="login-message"></p>
-  </div>
+<!-- Logo Image -->
+<div class="logo-container">
+  <img src="src/GreenPinkLogo.png" alt="SKRIBBLE Logo" class="logo-image">
 </div>
 
-<div id="journal-container" style="display: none;">
-  <button id="new-entry-button" onclick="showNewEntryForm()">New Entry</button>
+<div id="journal-container">
+  <div class="center-button-container">
+    <button id="new-entry-button" onclick="showNewEntryForm()">New Entry</button>
+  </div>
+
+  <!-- Journal with Save and Cancel Buttons -->
   <form id="journal-form" style="display: none;">
     <input type="text" id="title" placeholder="Entry Title" required>
     <textarea id="content" placeholder="Write your journal entry here..." rows="5" required></textarea>
-    <button type="submit">Save Entry</button>
+
+    <div class="button-container">
+      <button type="submit" class="styled-button">Save Entry</button>
+      <button type="button" id="cancel-entry-button" class="styled-button">Cancel</button>
+    </div>
   </form>
+
+  <button id="back-button" class="styled-button" style="display: none;">Back</button>
 
   <div id="journal-entries"></div>
 
-  <div id="full-entry" class="full-entry">
-    <button id="back-button">Back</button>
+  <div id="full-entry" class="full-entry" style="display: none;">
     <h3 id="full-entry-title"></h3>
     <p id="full-entry-content"></p>
     <small id="full-entry-date"></small>
@@ -45,7 +48,7 @@
     </div>
   </div>
 
-  <button id="logout-button">Log Out</button>
+  <button id="logout-button" style="display: none;">Log Out</button>
 </div>
 
 <script src="journalPage.js"></script>
