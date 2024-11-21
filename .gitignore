@@ -7,3 +7,4 @@ src/.expo/
 expo-env.d.ts
 
 *.DS_Store
+node_modules
