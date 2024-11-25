@@ -1,11 +1,12 @@
 I was unable to compile the expo go app on Android
-as all Java code intended for encryption will be un usable.
+
+since all Java code intended for encryption will be un usable.
 Here is the compromise:
 - convert all encryption java files to javascript or typescript
 - connect the typescript module to the frontend
   - this should be simple because no compilation will be needed; the expo web bundler will handle this fine
 
-Here are the steps taken to attempt compile the app on Android
+Here are the steps taken to attempt to compile the app on Android
 - install Java 17 any other version of Java did not work
 - install Android SDK
 - install NDK in Android Studio
@@ -19,4 +20,4 @@ Here are the steps taken to attempt compile the app on Android
   - cd android
   - ./gradlew clean (not sure the reason for this)
   - cd ..
-  - expo run:android (this process either failed all the app didn't display correctly in the virtual environment)
+  - expo run:android (this process either failed or the app didn't display correctly in the virtual environment)
