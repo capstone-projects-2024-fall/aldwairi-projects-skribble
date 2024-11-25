@@ -5,6 +5,7 @@ import { Text, View, TextInput, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import styles from "./indexStyles";
+import {Encryption, EncryptionResult} from "@/encryption/Encryption";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -26,8 +27,14 @@ export default function LogIn() {
       }
       // Sign up logic (saving credentials)
       try {
+        
+        let salt = Encryption.generateSalt()
+        let key = Encryption.generateKeyFromPassword(password, salt)
+        
         await AsyncStorage.setItem("email", email);
-        await AsyncStorage.setItem("password", password);
+        await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+        await AsyncStorage.setItem("salt", salt);
+        
         console.log("User signed up successfully.");
         router.push("/homePage");
       } catch (error) {
@@ -37,8 +44,13 @@ export default function LogIn() {
       // Sign in logic (validating credentials)
       const storedEmail = await AsyncStorage.getItem("email");
       const storedPassword = await AsyncStorage.getItem("password");
+      const storedSalt = await AsyncStorage.getItem("salt");
+      
+      let key = Encryption.generateKeyFromPassword(password, storedSalt!)
+      let encryptedPassword: EncryptionResult = JSON.parse(storedPassword!)
+      let decryptedPassword = Encryption.decrypt(key, encryptedPassword.iv, encryptedPassword.ciphertext)
 
-      if (storedEmail === email && storedPassword === password) {
+      if (storedEmail === email && decryptedPassword === password) {
         console.log("User signed in successfully.");
         setError(""); // Clear any previous error message
         router.push("/homePage"); // Navigate to home screen
