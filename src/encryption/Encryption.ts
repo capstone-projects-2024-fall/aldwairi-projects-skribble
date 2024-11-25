@@ -85,12 +85,12 @@ export class Encryption {
             CryptoJS.enc.Base64.parse(salt),
             {
                 keySize: 256 / 32, // 256 bits
-                iterations: 600000,
+                iterations: 100000,
                 hasher: CryptoJS.algo.SHA256,
             }
         );
     }
-
+    
     /**
      * Generates a random salt of specified length. Note the result is a string of double length.
      *
