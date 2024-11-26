@@ -123,7 +123,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  newEntryButton: {
+  newEntryButton: {...
+    (Platform.OS === 'web' ? { 
+      width: 160,
+      height: 60,
+    } : {
+      width: '100%',
+      height: undefined,
+      aspectRatio: 1,
+    }),
+    alignSelf: "center",
     fontSize: 20,
     fontWeight: 'bold',
     paddingVertical: 15,
@@ -151,8 +160,18 @@ export const styles = StyleSheet.create({
 
   // Delete Styles
   deleteButton: {
-    backgroundColor: '#05630b',
-    borderColor: '#045209',
+    paddingVertical: 5,
+    paddingHorizontal: 5  ,
+    backgroundColor: '#FF0000',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FF0000',
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+        color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   deleteConfirmationModal: {
     width: '85%',
