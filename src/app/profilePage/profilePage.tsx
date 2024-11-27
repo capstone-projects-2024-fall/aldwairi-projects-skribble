@@ -1,140 +1,129 @@
-import React, { useState, useEffect } from 'react';
-import styles from './styles';
+import React, { useState, useEffect } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Platform,
-  ScrollView,
   Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Svg, Path } from 'react-native-svg';
-import { logOut } from '../logOut';
+  ScrollView,
+} from "react-native";
+import { useRouter } from "expo-router";
+import neo4j from "neo4j-driver";
+import styles from "./styles";
 
 const ProfilePage: React.FC = () => {
-  const [avatarName, setAvatarName] = useState('');
-  const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
-  const [userName, setUserName] = useState('John Doe');
+  const [userName, setUserName] = useState("Loading...");
+  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
+  const [avatarImage, setAvatarImage] = useState(""); // URL or name of the avatar image
   const [userInfo, setUserInfo] = useState({
-    email: '',
-    coins: 120,
-    streak: 15,
-    exp: 950,
+    email: "",
+    coins: 0,
+    streak: 0,
+    exp: 0,
   });
+  const [newName, setNewName] = useState("");
   const router = useRouter();
 
-  // Load user data on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [savedColor, savedEmail, savedName] = await Promise.all([
-          AsyncStorage.getItem('backgroundColor'),
-          AsyncStorage.getItem('email'),
-          AsyncStorage.getItem('userName'),
-        ]);
+  // Initialize Neo4j driver
+  const driver = neo4j.driver(
+    "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j URI
+    neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
+  );
 
-        if (savedColor) {
-          setBackgroundColor(savedColor);
-        }
-        if (savedEmail) {
-          setUserInfo(prevState => ({ ...prevState, email: savedEmail }));
-        }
-        if (savedName) {
-          setUserName(savedName);
+  // Load user data from Neo4j
+  useEffect(() => {
+    const loadUserData = async () => {
+      const session = driver.session();
+      try {
+        const result = await session.run(
+          `MATCH (u:User {email: $email})
+           RETURN u`,
+          { email: "<current_user_email>" } // Replace with the logged-in user's email
+        );
+
+        if (result.records.length > 0) {
+          const user = result.records[0].get("u").properties;
+          setUserInfo({
+            email: user.email,
+            coins: user.coins,
+            streak: user.streak,
+            exp: user.exp,
+          });
+          setUserName(user.name || "Unnamed User");
+          setBackgroundColor(user.backgroundColor || "#FFFFFF");
+          setAvatarImage(user.avatarImage || ""); // Default avatar if not set
+        } else {
+          Alert.alert("Error", "User not found.");
         }
       } catch (error) {
-        console.error('Failed to load data from AsyncStorage', error);
-        Alert.alert('Error', 'Failed to load user data');
+        console.error("Failed to load user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
+      } finally {
+        await session.close();
       }
     };
-    loadData();
+
+    loadUserData();
   }, []);
 
-  const updateAvatarName = async () => {
-    if (avatarName.trim() === '') {
-      Alert.alert('Error', 'Avatar name cannot be empty');
+  // Update user name in Neo4j
+  const updateUserName = async () => {
+    if (!newName.trim()) {
+      Alert.alert("Error", "Name cannot be empty.");
       return;
     }
-
+  
+    const session = driver.session();
     try {
-      await AsyncStorage.setItem('userName', avatarName);
-      setUserName(avatarName);
-      setAvatarName(''); // Clear input field
-      Alert.alert('Success', 'Avatar name updated successfully');
+      const result = await session.run(
+        `
+        MATCH (u:User {email: $email})
+        SET u.name = $name
+        RETURN u.name AS updatedName
+        `,
+        { email: userInfo.email, name: newName } // Ensure email matches your database record
+      );
+  
+      if (result.records.length > 0) {
+        const updatedName = result.records[0].get("updatedName");
+        setUserName(updatedName);
+        setNewName(""); // Clear input
+        Alert.alert("Success", "Name updated successfully.");
+      } else {
+        Alert.alert("Error", "Failed to update name. User not found.");
+      }
     } catch (error) {
-      console.error('Failed to save avatar name', error);
-      Alert.alert('Error', 'Failed to update avatar name');
+      console.error("Failed to update name", error);
+      Alert.alert("Error", "Could not update name. Please try again.");
+    } finally {
+      await session.close();
     }
   };
+  
 
-  const changeBackgroundColor = async (color: string) => {
+  // Update background color in Neo4j
+  const updateBackgroundColor = async (color: string) => {
+    const session = driver.session();
     try {
-      await AsyncStorage.setItem('backgroundColor', color);
+      await session.run(
+        `MATCH (u:User {email: $email})
+         SET u.backgroundColor = $color
+         RETURN u`,
+        { email: userInfo.email, color }
+      );
+
       setBackgroundColor(color);
     } catch (error) {
-      console.error('Failed to save background color', error);
-      Alert.alert('Error', 'Failed to update background color');
+      console.error("Failed to update background color", error);
+      Alert.alert("Error", "Could not update background color.");
+    } finally {
+      await session.close();
     }
   };
 
-  const handleDelete = async () => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove([
-                'email',
-                'password',
-                'userName',
-                'backgroundColor',
-              ]);
-              router.push('/');
-            } catch (error) {
-              console.error('Failed to remove user data', error);
-              Alert.alert('Error', 'Failed to delete account');
-            }
-          },
-        },
-      ]
-    );
+  const handleLogout = () => {
+    router.push("/");
   };
-
-  // Rest of the component remains the same...
-  const HomeIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M5 12l-2 0l9 -9l9 9l-2 0" />
-      <Path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
-      <Path d="M10 12h4v4h-4z" />
-    </Svg>
-  );
-
-  const LogoutIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" />
-      <Path d="M15 12h-12l3 -3" />
-      <Path d="M6 15l-3 -3" />
-    </Svg>
-  );
-
-  const DeleteIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-      <Path d="M9 12l6 0" />
-    </Svg>
-  );
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
@@ -151,93 +140,62 @@ const ProfilePage: React.FC = () => {
             <Text style={styles.bold}>Email: </Text>
             {userInfo.email}
           </Text>
-          
-          <View style={styles.statsContainer}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Coins: </Text>
-              {userInfo.coins}
-            </Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Streak: </Text>
-              {userInfo.streak}
-            </Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>EXP: </Text>
-              {userInfo.exp}
-            </Text>
-          </View>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>Coins: </Text>
+            {userInfo.coins}
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>Streak: </Text>
+            {userInfo.streak}
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>EXP: </Text>
+            {userInfo.exp}
+          </Text>
         </View>
 
-        {/* Avatar Edit Section */}
+        {/* Update Name Section */}
         <View style={styles.section}>
-          <Text style={styles.label}>Edit Avatar Name:</Text>
+          <Text style={styles.label}>Update Name:</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter new avatar name"
-            value={avatarName}
-            onChangeText={setAvatarName}
+            placeholder="Enter new name"
+            value={newName}
+            onChangeText={setNewName}
           />
-          <TouchableOpacity style={styles.button} onPress={updateAvatarName}>
-            <Text style={styles.buttonText}>Update Avatar Name</Text>
+          <TouchableOpacity style={styles.button} onPress={updateUserName}>
+            <Text style={styles.buttonText}>Update Name</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Background Color Section */}
+        {/* Update Background Color Section */}
         <View style={styles.section}>
-          <Text style={styles.label}>Choose Background Color:</Text>
+          <Text style={styles.label}>Background Color:</Text>
           <View style={styles.colorButtons}>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#99CA9C' }]}
-              onPress={() => changeBackgroundColor('#99CA9C')}>
+              style={[styles.colorButton, { backgroundColor: "#99CA9C" }]}
+              onPress={() => updateBackgroundColor("#99CA9C")}
+            >
               <Text style={styles.buttonText}>Green</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#9FDDF9' }]}
-              onPress={() => changeBackgroundColor('#9FDDF9')}>
+              style={[styles.colorButton, { backgroundColor: "#9FDDF9" }]}
+              onPress={() => updateBackgroundColor("#9FDDF9")}
+            >
               <Text style={styles.buttonText}>Blue</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#FAC1BE' }]}
-              onPress={() => changeBackgroundColor('#FAC1BE')}>
+              style={[styles.colorButton, { backgroundColor: "#FAC1BE" }]}
+              onPress={() => updateBackgroundColor("#FAC1BE")}
+            >
               <Text style={styles.buttonText}>Pink</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Navigation Buttons */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('../parentalPortal/parentalPortal')}>
-          <Text style={styles.buttonText}>Parental Controls</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('../homePage')}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Back</Text>
-            <HomeIcon />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={logOut}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Log Out</Text>
-            <LogoutIcon />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={handleDelete}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Delete</Text>
-            <DeleteIcon />
-          </View>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <Text style={styles.buttonText}>Log Out</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

@@ -26,52 +26,63 @@ export default function LogIn() {
 
   const handleAuth = async () => {
     const session = driver.session();
-    try {
+  
+    if (isSignUp) {
       if (!email || !password) {
         setError("Email and password cannot be blank.");
         return;
       }
-
-      if (isSignUp) {
-        // Check if the email is already registered
-        const checkQuery = `
-          MATCH (u:User {email: $email})
-          RETURN u
-        `;
-        const existingUser = await session.run(checkQuery, { email });
-
-        if (existingUser.records.length > 0) {
-          setError("Email is already registered.");
-          return;
+  
+      try {
+        // Create a new user or ensure the user exists
+        const result = await session.run(
+          `MERGE (u:User {email: $email})
+           ON CREATE SET 
+             u.password = $password,
+             u.name = $name,
+             u.streak = 0,
+             u.coins = 0,
+             u.exp = 0,
+             u.backgroundColor = '#FFFFFF'
+           RETURN u`,
+          { email, password, name: "New User" } // Replace "New User" with dynamic input if needed
+        );
+  
+        if (result.summary.counters.containsUpdates()) {
+          console.log("User signed up successfully.");
+          router.push("/homePage");
+        } else {
+          setError("User already exists.");
         }
-
-        // Sign up logic: Create a new user
-        const signUpQuery = `
-          CREATE (u:User {email: $email, password: $password})
-        `;
-        await session.run(signUpQuery, { email, password });
-        console.log("User signed up successfully.");
-        router.push("/homePage");
-      } else {
-        // Sign in logic: Validate credentials
-        const signInQuery = `
-          MATCH (u:User {email: $email, password: $password})
-          RETURN u
-        `;
-        const result = await session.run(signInQuery, { email, password });
-
+      } catch (error) {
+        console.error("Failed to sign up user", error);
+        setError("An error occurred while signing up. Please try again.");
+      } finally {
+        await session.close();
+        await driver.close();
+      }
+    } else {
+      try {
+        // Validate existing user credentials
+        const result = await session.run(
+          `MATCH (u:User {email: $email, password: $password})
+           RETURN u`,
+          { email, password }
+        );
+  
         if (result.records.length > 0) {
           console.log("User signed in successfully.");
           router.push("/homePage");
         } else {
-          setError("Invalid email or password. Please try again.");
+          setError("Invalid email or password.");
         }
+      } catch (error) {
+        console.error("Failed to sign in user", error);
+        setError("An error occurred while signing in. Please try again.");
+      } finally {
+        await session.close();
+        await driver.close();
       }
-    } catch (error) {
-      console.error("Error during authentication", error);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      await session.close();
     }
   };
 
