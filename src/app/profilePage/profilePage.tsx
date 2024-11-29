@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import neo4j from "neo4j-driver";
+import { avatar_list } from '../../assets/avatars/avatarAssets';
 import styles from "./styles";
 
 const ProfilePage: React.FC = () => {
@@ -22,7 +24,20 @@ const ProfilePage: React.FC = () => {
     exp: 0,
   });
   const [newName, setNewName] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const router = useRouter();
+
+  const handleAvatarSelect = (avatar_id: string) => {
+    setSelectedAvatar(avatar_id);
+  };
+
+  const navigateToParentalPortal = () => {
+    router.push('/parentalPortal/parentalPortal');
+  };
+
+  const navigateToHomePage = () => {
+    router.push('/homePage');
+  };
 
   // Initialize Neo4j driver
   const driver = neo4j.driver(
@@ -99,7 +114,6 @@ const ProfilePage: React.FC = () => {
       await session.close();
     }
   };
-  
 
   // Update background color in Neo4j
   const updateBackgroundColor = async (color: string) => {
@@ -193,11 +207,41 @@ const ProfilePage: React.FC = () => {
           </View>
         </View>
 
+        {/* Allow user to select a new avatar: show all avatars and allow user to select one */}
+        <View style={styles.container}>
+            <Text style={styles.title}>Select a new avatar</Text>
+            <View style={styles.avatarContainer}>
+                {avatar_list.map(avatar => (
+                    <TouchableOpacity key={avatar.avatar_id} onPress={() => handleAvatarSelect(avatar.avatar_id)}>
+                        <Image
+                            source={avatar.avatar_image}
+                            style={[
+                                styles.avatar,
+                                selectedAvatar === avatar.avatar_id && styles.selectedAvatar
+                            ]}
+                            resizeMode="contain"
+                        />
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            
+        {/* Button to navigate to parental portal  */}
+        <TouchableOpacity style={styles.button} onPress={navigateToParentalPortal}>
+                <Text style={styles.buttonText}>Go to Parental Portal</Text>
+        </TouchableOpacity>
+
+        {/* Back Button */}
+        <TouchableOpacity style={[styles.button]} onPress={navigateToHomePage}>
+                <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+
         {/* Logout Button */}
         <TouchableOpacity style={styles.button} onPress={handleLogout}>
           <Text style={styles.buttonText}>Log Out</Text>
         </TouchableOpacity>
       </View>
+    </View>
     </ScrollView>
   );
 };

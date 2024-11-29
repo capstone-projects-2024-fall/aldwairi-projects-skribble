@@ -4,6 +4,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Dimensions, 
 import Svg, { Path } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { avatar_list } from '../assets/avatars/avatarAssets';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -102,10 +103,11 @@ const HomePage: React.FC = () => {
                 />
             </View>
 
-            <View style={styles.avatar}>
+            <View style={[styles.avatar, { marginTop: 100 }]}>
                 <Image
-                    source={require('../assets/images/bear/bear1.png')}
-                    style={{ width: 100, height: 100, borderRadius: 50 }}
+                    source={avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image}
+                    style={{ width: 250, height: 250}}
+                    resizeMode="contain"
                 />
             </View>
 

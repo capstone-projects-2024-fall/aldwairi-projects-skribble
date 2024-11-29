@@ -103,6 +103,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 8,
   },
+  avatarContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 45,
+    margin: 10,
+  },
+  selectedAvatar: {
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  button: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
 });
 
 export default styles;
