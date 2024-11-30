@@ -8,10 +8,12 @@ import {
   StyleSheet, 
   Switch,
   ScrollView,
-  Platform 
+  Platform,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logo_list } from '../../assets/logos/logosAssets';
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
@@ -82,6 +84,16 @@ const ParentalControlPanel: React.FC = () => {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor }]}>
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+                <Image
+                source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+                style={styles.logo}
+                resizeMode="contain"
+                />
+            </View>
+
+            {/* Title */}
             <Text style={styles.title}>Parental Control Panel</Text>
 
             {/* Email Section */}

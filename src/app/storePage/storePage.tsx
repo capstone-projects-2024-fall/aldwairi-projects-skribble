@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Ale
 import { category_list, clothes_list } from '../../assets/clothing/clothingAssets';
 import neo4j from 'neo4j-driver';
 import styles from './styles';
+import { logo_list } from '../../assets/logos/logosAssets';
 
 const StorePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -84,6 +85,16 @@ const StorePage: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Logo */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Title */}
       <Text style={styles.title}>Store</Text>
 
       {/* Category Selection */}

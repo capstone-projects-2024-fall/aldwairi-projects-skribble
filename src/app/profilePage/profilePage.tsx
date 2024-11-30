@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import neo4j from "neo4j-driver";
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import styles from "./styles";
+import { logo_list } from '../../assets/logos/logosAssets';
 
 const ProfilePage: React.FC = () => {
   const [userName, setUserName] = useState("Loading...");
@@ -142,7 +143,18 @@ const ProfilePage: React.FC = () => {
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
       <View style={styles.profileContainer}>
-        <Text style={styles.title}>User Profile</Text>
+
+      {/* Logo */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Title */}
+      <Text style={styles.title}>Profile</Text>
 
         {/* User Info Section */}
         <View style={styles.userInfo}>

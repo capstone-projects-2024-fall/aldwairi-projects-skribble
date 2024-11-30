@@ -1,9 +1,24 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    logoContainer: {
+        width: '100%',
+        height: windowHeight * 0.15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 10,
+    },
+     logo: {
+        width: windowWidth * 0.8,
+        height: '100%',
+        maxHeight: 100,
     },
     title: {
         fontSize: 24,
