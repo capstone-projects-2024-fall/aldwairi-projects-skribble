@@ -94,7 +94,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     padding: 12,
     borderRadius: 8,
-    marginVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -125,10 +124,8 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   },
   centeredSection: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 20, 
   },
   input: {
     borderWidth: 1,
@@ -143,7 +140,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 20, 
   },
   button: {
     marginTop: 20,
