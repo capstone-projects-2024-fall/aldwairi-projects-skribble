@@ -16,11 +16,16 @@ const styles = StyleSheet.create({
       marginBottom: 20,
     },
     headerButton: {
-      padding: 10,
+      padding: 30,
+      borderRadius: 60,
+      marginLeft: 50,
+      marginRight: 50,
+      borderWidth: 3,
     },
     headerButtonText: {
-      fontSize: 18,
-      color: '#007BFF',
+      fontSize: 22,
+      color: '#0000000',
+      fontWeight: 'bold',
     },
     logoContainer: {
       flex: 1,

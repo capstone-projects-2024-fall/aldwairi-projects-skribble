@@ -14,15 +14,14 @@ import {
 import { useRouter } from 'expo-router';
 import neo4j from 'neo4j-driver';
 import { logo_list } from '../../assets/logos/logosAssets';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils'; 
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
 
     // Set up the Neo4j driver
-    const driver = neo4j.driver(
-        "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j instance address
-        neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
-    );
+    const driver = createNeo4jDriver();
 
     // Initial state setup with default values
     const [email, setEmail] = useState('parent@example.com');
@@ -132,7 +131,7 @@ const ParentalControlPanel: React.FC = () => {
                     autoCapitalize="none"
                 />
                 <TouchableOpacity 
-                    style={styles.button}
+                    style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={changeEmail}
                 >
                     <Text style={styles.buttonText}>Change Email</Text>
@@ -189,7 +188,7 @@ const ParentalControlPanel: React.FC = () => {
                 </View>
 
                 <TouchableOpacity 
-                    style={styles.button}
+                    style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={saveControls}
                 >
                     <Text style={styles.buttonText}>Save Settings</Text>
@@ -198,7 +197,7 @@ const ParentalControlPanel: React.FC = () => {
 
             {/* Back Button */}
             <TouchableOpacity 
-                style={[styles.button, styles.backButton]}
+                style={[styles.button, styles.backButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                 onPress={goToProfilePage}
             >
                 <Text style={styles.buttonText}>Back</Text>

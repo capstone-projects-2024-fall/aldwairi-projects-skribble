@@ -3,6 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
 import neo4j from "neo4j-driver";
 import { useRouter } from "expo-router";
 import styles from "./indexStyles";
+import createNeo4jDriver from './utils/databaseSetUp';
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -14,10 +15,7 @@ export default function LogIn() {
   const router = useRouter();
 
   // Set up the Neo4j driver
-  const driver = neo4j.driver(
-    "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j instance address
-    neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
-  );
+  const driver = createNeo4jDriver();
 
   const handleAuthToggle = () => {
     setIsSignUp(!isSignUp);

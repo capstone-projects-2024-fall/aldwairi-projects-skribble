@@ -5,19 +5,19 @@ import neo4j from 'neo4j-driver';
 import styles from './styles';
 import { logo_list } from '../../assets/logos/logosAssets';
 import { useRouter } from 'expo-router';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils'; 
 
 const StorePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [userCoins, setUserCoins] = useState<number>(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const router = useRouter();
 
-  // Initialize Neo4j driver
-  const driver = neo4j.driver(
-    "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j URI
-    neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
-  );
+  // Set up the Neo4j driver
+  const driver = createNeo4jDriver();
 
   useEffect(() => {
     // Fetch user coins from the database
@@ -26,6 +26,7 @@ const StorePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {email: $email})
+          u.backgroundColor AS backgroundColor
            RETURN u.coins AS coins`,
           { email: "<current_user_email>" } // Replace with the logged-in user's email
         );
@@ -89,7 +90,7 @@ const StorePage: React.FC = () => {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.push('/homePage')} style={styles.headerButton}>
+        <TouchableOpacity onPress={() => router.push('/homePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
           <Text style={styles.headerButtonText}>Back</Text>
         
         </TouchableOpacity>
@@ -100,7 +101,7 @@ const StorePage: React.FC = () => {
             resizeMode="contain"
           />
         </View>
-        <TouchableOpacity onPress={() => router.push('/closetPage/closetPage')} style={styles.headerButton}>
+        <TouchableOpacity onPress={() => router.push('/closetPage/closetPage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
           <Text style={styles.headerButtonText}>Closet</Text>
         </TouchableOpacity>
       </View>

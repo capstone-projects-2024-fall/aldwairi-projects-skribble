@@ -13,6 +13,8 @@ import neo4j from "neo4j-driver";
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import styles from "./styles";
 import { logo_list } from '../../assets/logos/logosAssets';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils'; 
 
 const ProfilePage: React.FC = () => {
   const [userName, setUserName] = useState("Loading...");
@@ -56,11 +58,8 @@ const ProfilePage: React.FC = () => {
     router.push('/homePage');
   };
 
-  // Initialize Neo4j driver
-  const driver = neo4j.driver(
-    "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j URI
-    neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
-  );
+  // Set up the Neo4j driver
+  const driver = createNeo4jDriver();
 
   // Load user data from Neo4j
   useEffect(() => {
@@ -197,8 +196,7 @@ const ProfilePage: React.FC = () => {
           </Text>
         </View>
 
-        {/* Update Email Section */}
-        <View style={styles.section}>
+        <View style={styles.centeredSection}>
           <Text style={styles.label}>Update Email:</Text>
           <TextInput
             style={styles.input}
@@ -207,7 +205,10 @@ const ProfilePage: React.FC = () => {
             value={newEmail}
             onChangeText={setNewEmail}
           />
-          <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
+            onPress={updateUserEmail}
+          >
             <Text style={styles.buttonText}>Update Email</Text>
           </TouchableOpacity>
         </View>
@@ -254,22 +255,23 @@ const ProfilePage: React.FC = () => {
                     </TouchableOpacity>
                 ))}
             </View>
-
             
+        <View style={styles.buttonContainer}>
         {/* Button to navigate to parental portal  */}
-        <TouchableOpacity style={styles.button} onPress={navigateToParentalPortal}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToParentalPortal}>
                 <Text style={styles.buttonText}>Go to Parental Portal</Text>
         </TouchableOpacity>
 
         {/* Back Button */}
-        <TouchableOpacity style={[styles.button]} onPress={navigateToHomePage}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToHomePage}>
                 <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={handleLogout}>
           <Text style={styles.buttonText}>Log Out</Text>
         </TouchableOpacity>
+        </View>
       </View>
     </View>
     </ScrollView>

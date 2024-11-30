@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
+import createNeo4jDriver from '../utils/databaseSetUp';
 
 interface JournalEntry {
   title: string;

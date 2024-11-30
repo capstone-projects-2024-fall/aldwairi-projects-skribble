@@ -68,9 +68,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     button: {
-        backgroundColor: '#2196F3',
         padding: 15,
         borderRadius: 8,
+        borderWidth: 3,
+        width: 200,
         alignItems: 'center',
         marginVertical: 10,
         ...Platform.select({
@@ -86,7 +87,8 @@ const styles = StyleSheet.create({
         }),
     },
     buttonText: {
-        color: '#fff',
+        color: '#000',
+        fontWeight: 'bold',
         fontSize: 16,
         fontWeight: '600',
     },
@@ -98,8 +100,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
     },
     backButton: {
-        backgroundColor: '#4CAF50',
-        marginTop: 20,
+        width: 75,
     },
 });
 

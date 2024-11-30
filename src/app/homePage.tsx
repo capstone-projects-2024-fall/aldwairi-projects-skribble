@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import neo4j from 'neo4j-driver';
 import styles from './homePageStyles';
 import { avatar_list } from '../assets/avatars/avatarAssets';
+import createNeo4jDriver from './utils/databaseSetUp';
+import { getDarkerShade } from './utils/colorUtils'; 
 
 const HomePage: React.FC = () => {
   const router = useRouter();
@@ -16,10 +17,7 @@ const HomePage: React.FC = () => {
   const screenWidth = Dimensions.get('window').width;
 
   // Set up the Neo4j driver
-  const driver = neo4j.driver(
-    "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j instance address
-    neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
-  );
+  const driver = createNeo4jDriver();
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -48,13 +46,6 @@ const HomePage: React.FC = () => {
 
     loadSettings();
   }, [parentEmail]);
-
-  const getDarkerShade = (color: string) => {
-    const amount = -100;
-    return '#' + color.replace(/^#/, '').replace(/../g, color =>
-      ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2)
-    );
-  };
 
   const goToPage = (page: string) => {
     router.push(page);

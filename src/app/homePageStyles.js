@@ -36,11 +36,13 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 3,
   },
   buttonText: {
-      color: 'white',
+      color: 'black',
       fontSize: 20,
       marginRight: 14,
+      fontWeight: 'bold',
   },
   icon: {
       width: 32,
