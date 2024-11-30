@@ -148,6 +148,13 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
+  button: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
 
   // Delete Styles
   deleteButton: {

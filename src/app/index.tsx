@@ -1,7 +1,5 @@
-// SIGN UP AND LOG IN
-
 import React, { useState } from "react";
-import { Text, View, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
 import neo4j from "neo4j-driver";
 import { useRouter } from "expo-router";
 import styles from "./indexStyles";
@@ -9,6 +7,8 @@ import styles from "./indexStyles";
 export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState(""); // State for error message
   const router = useRouter();
@@ -28,8 +28,17 @@ export default function LogIn() {
     const session = driver.session();
   
     if (isSignUp) {
-      if (!email || !password) {
-        setError("Email and password cannot be blank.");
+      if (!email || !password || !birthday) {
+        setError("Email, password, and birthday cannot be blank.");
+        return;
+      }
+
+      const birthDate = new Date(birthday);
+      const age = new Date().getFullYear() - birthDate.getFullYear();
+      const needsParentalControls = age < 13;
+
+      if (needsParentalControls && !parentEmail) {
+        setError("Parent's email is required for users under 13.");
         return;
       }
   
@@ -43,9 +52,12 @@ export default function LogIn() {
              u.streak = 0,
              u.coins = 0,
              u.exp = 0,
-             u.backgroundColor = '#FFFFFF'
+             u.backgroundColor = '#FFFFFF',
+             u.birthday = $birthday,
+             u.parentEmail = $parentEmail,
+             u.needsParentalControls = $needsParentalControls
            RETURN u`,
-          { email, password, name: "New User" } // Replace "New User" with dynamic input if needed
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls }
         );
   
         if (result.summary.counters.containsUpdates()) {
@@ -110,6 +122,29 @@ export default function LogIn() {
           setError(""); // Clear error message when user starts typing
         }}
       />
+      {isSignUp && (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Birthday (YYYY-MM-DD)"
+            value={birthday}
+            onChangeText={(text) => {
+              setBirthday(text);
+              setError(""); // Clear error message when user starts typing
+            }}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Parent's Email (if under 13)"
+            keyboardType="email-address"
+            value={parentEmail}
+            onChangeText={(text) => {
+              setParentEmail(text);
+              setError(""); // Clear error message when user starts typing
+            }}
+          />
+        </>
+      )}
 
       {/* Display error message */}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}

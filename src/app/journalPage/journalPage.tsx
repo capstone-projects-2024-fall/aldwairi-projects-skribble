@@ -13,6 +13,7 @@ import {
   Animated
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from "expo-router";
 
 interface JournalEntry {
   title: string;
@@ -21,17 +22,18 @@ interface JournalEntry {
   imageIndex: number; // Changed from imagePath to imageIndex
 }
 
-const JournalPage = () => {
-  const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
-  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
-  const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
-  const [isGifVisible, setIsGifVisible] = useState(false);
-  const fadeAnim = useState(new Animated.Value(0))[0];
+  const JournalPage: React.FC = () => {
+    const router = useRouter();
+    const [entries, setEntries] = useState<JournalEntry[]>([]);
+    const [isFormVisible, setIsFormVisible] = useState(false);
+    const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
+    const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+    const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
+    const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
+    const [isGifVisible, setIsGifVisible] = useState(false);
+    const fadeAnim = useState(new Animated.Value(0))[0];
 
   const BEAR_IMAGES = [
     require('../../assets/images/bear/bear1.png'),
@@ -40,6 +42,7 @@ const JournalPage = () => {
     require('../../assets/images/bear/bear4.png'),
     require('../../assets/images/bear/bear5.png')
   ];
+
   // Load journal entries from AsyncStorage on component mount
   useEffect(() => {
     const loadEntries = async () => {
@@ -75,6 +78,10 @@ const JournalPage = () => {
     };
     saveEntries();
   }, [entries]);
+
+  const navigateToHomePage = () => {
+    router.push('/homePage');
+  };
 
   // Function to show GIF animation
   const showRewardGif = () => {
@@ -289,6 +296,11 @@ const JournalPage = () => {
           <Text style={styles.newEntryButtonText}>New Entry</Text>
         </TouchableOpacity>
       )}
+
+      {/* Back Button */}
+      <TouchableOpacity style={[styles.button]} onPress={navigateToHomePage}>
+                <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
 
       {isFormVisible && renderNewEntryForm()}
       {!isFormVisible && currentEntry && renderEntry()}

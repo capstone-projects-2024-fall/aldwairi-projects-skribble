@@ -9,17 +9,27 @@ const styles = StyleSheet.create({
       padding: 20,
       backgroundColor: '#fff',
     },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    headerButton: {
+      padding: 10,
+    },
+    headerButtonText: {
+      fontSize: 18,
+      color: '#007BFF',
+    },
     logoContainer: {
-        width: '100%',
-        height: windowHeight * 0.15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 10,
+      flex: 1,
+      alignItems: 'center',
     },
      logo: {
-        width: windowWidth * 0.8,
-        height: '100%',
-        maxHeight: 100,
+      width: windowWidth * 0.4,
+      height:  windowWidth * 0.2,
+      maxHeight: 100,
     },
     title: {
       textAlign: 'center',

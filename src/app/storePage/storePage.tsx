@@ -4,12 +4,14 @@ import { category_list, clothes_list } from '../../assets/clothing/clothingAsset
 import neo4j from 'neo4j-driver';
 import styles from './styles';
 import { logo_list } from '../../assets/logos/logosAssets';
+import { useRouter } from 'expo-router';
 
 const StorePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [userCoins, setUserCoins] = useState<number>(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const router = useRouter();
 
   // Initialize Neo4j driver
   const driver = neo4j.driver(
@@ -85,13 +87,22 @@ const StorePage: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.push('/homePage')} style={styles.headerButton}>
+          <Text style={styles.headerButtonText}>Back</Text>
+        
+        </TouchableOpacity>
+        <View style={styles.logoContainer}>
+          <Image
+            source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+        <TouchableOpacity onPress={() => router.push('/closetPage/closetPage')} style={styles.headerButton}>
+          <Text style={styles.headerButtonText}>Closet</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Title */}
