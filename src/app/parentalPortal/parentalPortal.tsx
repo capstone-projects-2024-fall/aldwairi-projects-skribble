@@ -12,11 +12,17 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import neo4j from 'neo4j-driver';
 import { logo_list } from '../../assets/logos/logosAssets';
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
+
+    // Set up the Neo4j driver
+    const driver = neo4j.driver(
+        "neo4j+s://24f2d4b6.databases.neo4j.io", // Replace with your Neo4j instance address
+        neo4j.auth.basic("neo4j", "SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc") // Replace with your credentials
+    );
 
     // Initial state setup with default values
     const [email, setEmail] = useState('parent@example.com');
@@ -27,30 +33,38 @@ const ParentalControlPanel: React.FC = () => {
     const [timeLimit, setTimeLimit] = useState('2'); // Changed to string for TextInput
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
 
-    // Use Effect to load saved settings from AsyncStorage
+    // Use Effect to load saved settings from Neo4j
     useEffect(() => {
         const loadSettings = async () => {
+            const session = driver.session();
             try {
-                const savedEmail = await AsyncStorage.getItem('email');
-                const savedAllowAddViewFriends = await AsyncStorage.getItem('allowAddViewFriends');
-                const savedEnableChat = await AsyncStorage.getItem('enableChat');
-                const savedAllowMediaSharing = await AsyncStorage.getItem('allowMediaSharing');
-                const savedTimeLimit = await AsyncStorage.getItem('timeLimit');
-                const savedBackgroundColor = await AsyncStorage.getItem('backgroundColor');
+                const result = await session.run(
+                    `MATCH (u:User {parentEmail: $email})
+                     RETURN u.allowAddViewFriends AS allowAddViewFriends, 
+                            u.enableChat AS enableChat, 
+                            u.allowMediaSharing AS allowMediaSharing, 
+                            u.timeLimit AS timeLimit, 
+                            u.backgroundColor AS backgroundColor`,
+                    { email }
+                );
 
-                if (savedEmail) setEmail(savedEmail);
-                if (savedAllowAddViewFriends !== null) setAllowAddViewFriends(JSON.parse(savedAllowAddViewFriends));
-                if (savedEnableChat !== null) setEnableChat(JSON.parse(savedEnableChat));
-                if (savedAllowMediaSharing !== null) setAllowMediaSharing(JSON.parse(savedAllowMediaSharing));
-                if (savedTimeLimit) setTimeLimit(savedTimeLimit);
-                if (savedBackgroundColor) setBackgroundColor(savedBackgroundColor);
+                if (result.records.length > 0) {
+                    const record = result.records[0];
+                    setAllowAddViewFriends(record.get('allowAddViewFriends'));
+                    setEnableChat(record.get('enableChat'));
+                    setAllowMediaSharing(record.get('allowMediaSharing'));
+                    setTimeLimit(record.get('timeLimit'));
+                    setBackgroundColor(record.get('backgroundColor'));
+                }
             } catch (error) {
-                console.error('Failed to load settings from AsyncStorage:', error);
+                console.error('Failed to load settings from Neo4j:', error);
+            } finally {
+                await session.close();
             }
         };
 
         loadSettings();
-    }, []);
+    }, [email]);
 
     // Change the email address
     const changeEmail = () => {
@@ -63,17 +77,23 @@ const ParentalControlPanel: React.FC = () => {
 
     // Save all settings
     const saveControls = async () => {
+        const session = driver.session();
         try {
-            await AsyncStorage.setItem('email', email);
-            await AsyncStorage.setItem('allowAddViewFriends', JSON.stringify(allowAddViewFriends));
-            await AsyncStorage.setItem('enableChat', JSON.stringify(enableChat));
-            await AsyncStorage.setItem('allowMediaSharing', JSON.stringify(allowMediaSharing));
-            await AsyncStorage.setItem('timeLimit', timeLimit);
-            await AsyncStorage.setItem('backgroundColor', backgroundColor);
+            await session.run(
+                `MERGE (u:User {parentEmail: $email})
+                 SET u.allowAddViewFriends = $allowAddViewFriends, 
+                     u.enableChat = $enableChat, 
+                     u.allowMediaSharing = $allowMediaSharing, 
+                     u.timeLimit = $timeLimit, 
+                     u.backgroundColor = $backgroundColor`,
+                { email, allowAddViewFriends, enableChat, allowMediaSharing, timeLimit, backgroundColor }
+            );
 
             console.log('Parental controls saved');
         } catch (error) {
-            console.error('Failed to save settings to AsyncStorage:', error);
+            console.error('Failed to save settings to Neo4j:', error);
+        } finally {
+            await session.close();
         }
     };
 

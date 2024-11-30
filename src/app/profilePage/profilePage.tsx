@@ -17,19 +17,35 @@ import { logo_list } from '../../assets/logos/logosAssets';
 const ProfilePage: React.FC = () => {
   const [userName, setUserName] = useState("Loading...");
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
-  const [avatarImage, setAvatarImage] = useState(""); // URL or name of the avatar image
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image); 
   const [userInfo, setUserInfo] = useState({
     email: "",
     coins: 0,
     streak: 0,
     exp: 0,
   });
-  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleAvatarSelect = (avatar_id: string) => {
+  const handleAvatarSelect = async (avatar_id: string) => {
     setSelectedAvatar(avatar_id);
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {email: $email})
+         SET u.avatarImage = $avatarImage
+         RETURN u`,
+        { email: userInfo.email, avatarImage: avatar_id }
+      );
+      setAvatarImage(avatar_id);
+      Alert.alert("Success", "Avatar updated successfully.");
+    } catch (error) {
+      console.error("Failed to update avatar", error);
+      Alert.alert("Error", "Could not update avatar.");
+    } finally {
+      await session.close();
+    }
   };
 
   const navigateToParentalPortal = () => {
@@ -53,7 +69,7 @@ const ProfilePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {email: $email})
-           RETURN u`,
+           RETURN u.email AS email, u.coins AS coins, u.streak AS streak, u.exp AS exp, u.name AS name, u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
           { email: "<current_user_email>" } // Replace with the logged-in user's email
         );
 
@@ -67,7 +83,8 @@ const ProfilePage: React.FC = () => {
           });
           setUserName(user.name || "Unnamed User");
           setBackgroundColor(user.backgroundColor || "#FFFFFF");
-          setAvatarImage(user.avatarImage || ""); // Default avatar if not set
+          setAvatarImage(user.avatarImage || avatarImage);
+          setSelectedAvatar(user.avatarImage || avatar_list[0].avatar_image);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -82,10 +99,10 @@ const ProfilePage: React.FC = () => {
     loadUserData();
   }, []);
 
-  // Update user name in Neo4j
-  const updateUserName = async () => {
-    if (!newName.trim()) {
-      Alert.alert("Error", "Name cannot be empty.");
+  // Update user email in Neo4j
+  const updateUserEmail = async () => {
+    if (!newEmail.trim()) {
+      Alert.alert("Error", "Email cannot be empty.");
       return;
     }
   
@@ -94,23 +111,23 @@ const ProfilePage: React.FC = () => {
       const result = await session.run(
         `
         MATCH (u:User {email: $email})
-        SET u.name = $name
-        RETURN u.name AS updatedName
+        SET u.email = $newEmail
+        RETURN u.email AS updatedEmail
         `,
-        { email: userInfo.email, name: newName } // Ensure email matches your database record
+        { email: userInfo.email, newEmail } // Ensure email matches your database record
       );
   
       if (result.records.length > 0) {
-        const updatedName = result.records[0].get("updatedName");
-        setUserName(updatedName);
-        setNewName(""); // Clear input
-        Alert.alert("Success", "Name updated successfully.");
+        const updatedEmail = result.records[0].get("updatedEmail");
+        setUserInfo({ ...userInfo, email: updatedEmail });
+        setNewEmail(""); // Clear input
+        Alert.alert("Success", "Email updated successfully.");
       } else {
-        Alert.alert("Error", "Failed to update name. User not found.");
+        Alert.alert("Error", "Failed to update email. User not found.");
       }
     } catch (error) {
-      console.error("Failed to update name", error);
-      Alert.alert("Error", "Could not update name. Please try again.");
+      console.error("Failed to update email", error);
+      Alert.alert("Error", "Could not update email. Please try again.");
     } finally {
       await session.close();
     }
@@ -180,17 +197,18 @@ const ProfilePage: React.FC = () => {
           </Text>
         </View>
 
-        {/* Update Name Section */}
+        {/* Update Email Section */}
         <View style={styles.section}>
-          <Text style={styles.label}>Update Name:</Text>
+          <Text style={styles.label}>Update Email:</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter new name"
-            value={newName}
-            onChangeText={setNewName}
+            placeholder="Enter new email"
+            keyboardType="email-address"
+            value={newEmail}
+            onChangeText={setNewEmail}
           />
-          <TouchableOpacity style={styles.button} onPress={updateUserName}>
-            <Text style={styles.buttonText}>Update Name</Text>
+          <TouchableOpacity style={styles.button} onPress={updateUserEmail}>
+            <Text style={styles.buttonText}>Update Email</Text>
           </TouchableOpacity>
         </View>
 
