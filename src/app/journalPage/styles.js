@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#99CA9C',
+
     padding: 20,
   },
   centerContainer: {
@@ -18,10 +19,14 @@ export const styles = StyleSheet.create({
     width: '100%',
     padding: 16,
     gap: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titleInput: {
-    width: '100%',
+    width: windowWidth > 768 ? '80%' : '100%',  // Only reduce width on desktop
+    maxWidth: windowWidth > 768 ? 600 : '100%',  // Optional: set a max width for desktop
     padding: 12,
+
     borderWidth: 1.5,
     borderColor: '#454545',
     borderRadius: 8,
@@ -37,9 +42,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
+
   contentTextarea: {
-    width: '100%',
-    minHeight: 150,
+    width: windowWidth > 768 ? '80%' : '100%',
+    maxWidth: windowWidth > 768 ? 600 : '100%',
     padding: 12,
     borderWidth: 1.5,
     borderColor: '#454545',
@@ -47,7 +53,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
     color: '#000',
-    textAlignVertical: 'top',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -79,8 +84,11 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   formInput: {
-    width: '100%',
+    width: windowWidth > 768 ? '80%' : '100%',
+    maxWidth: windowWidth > 768 ? 600 : '100%',
     padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 4,
@@ -89,9 +97,12 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   formTextarea: {
-    width: '100%',
+    width: windowWidth > 768 ? '80%' : '100%',
+    maxWidth: windowWidth > 768 ? 600 : '100%',
     minHeight: 150,
     padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 4,
@@ -123,7 +134,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  newEntryButton: {
+  newEntryButton: {...
+    (Platform.OS === 'web' ? {
+      width: 160,
+      height: 60,
+    } : {
+      width: '100%',
+      height: undefined,
+      aspectRatio: 1,
+    }),
+    alignSelf: "center",
     fontSize: 20,
     fontWeight: 'bold',
     paddingVertical: 15,
@@ -148,18 +168,21 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  button: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#007BFF',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
 
   // Delete Styles
   deleteButton: {
-    backgroundColor: '#05630b',
-    borderColor: '#045209',
+    paddingVertical: 5,
+    paddingHorizontal: 5  ,
+    backgroundColor: '#FF0000',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FF0000',
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+        color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   deleteConfirmationModal: {
     width: '85%',
