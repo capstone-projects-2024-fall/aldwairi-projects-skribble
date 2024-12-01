@@ -1,33 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useRouter } from 'expo-router';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Dimensions, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import styles from './homePageStyles';
 import { avatar_list } from '../assets/avatars/avatarAssets';
 import createNeo4jDriver from './utils/databaseSetUp';
 import { getDarkerShade } from './utils/colorUtils';
+import { AuthContext } from "./AuthContext";
 
 const HomePage: React.FC = () => {
   const router = useRouter();
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [allowAddViewFriends, setAllowAddViewFriends] = useState(false);
   const [enableChat, setEnableChat] = useState(false);
   const parentEmail = 'parent@example.com'; // Replace with the actual parent email
-
+  const { sessionToken } = useContext(AuthContext);
   const screenWidth = Dimensions.get('window').width;
 
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
   useEffect(() => {
+
+    const loadUserData = async () => {
+      const session = driver.session();
+      try {
+        const result = await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken})
+           RETURN u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
+          { sessionToken }
+        );
+        if (result.records.length > 0) {
+          // Directly accessing the fields in the result
+          const record = result.records[0];
+          // Extract values from the result, handling the INTEGER type if necessary
+          const backgroundColor = record.get("backgroundColor");
+          const avatarImage = record.get("avatarImage");
+
+          console.log("User properties:", { backgroundColor, avatarImage }); // Debugging
+
+          setBackgroundColor(backgroundColor || "#FFFFFF");
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+        } else {
+          Alert.alert("Error", "User not found.");
+        }
+      } catch (error) {
+        console.error("Failed to load user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
+      } finally {
+        await session.close();
+      }
+    };
+
     const loadSettings = async () => {
       const session = driver.session();
       try {
         const result = await session.run(
           `MATCH (u:User {parentEmail: $parentEmail})
-           RETURN u.allowAddViewFriends AS allowAddViewFriends, 
-                  u.enableChat AS enableChat,
-                  u.backgroundColor AS backgroundColor`,
+           RETURN u.allowAddViewFriends AS allowAddViewFriends,
+                  u.enableChat AS enableChat,`,
           { parentEmail }
         );
 
@@ -35,7 +67,6 @@ const HomePage: React.FC = () => {
           const record = result.records[0];
           setAllowAddViewFriends(record.get('allowAddViewFriends'));
           setEnableChat(record.get('enableChat'));
-          setBackgroundColor(record.get('backgroundColor'));
         }
       } catch (error) {
         console.error('Failed to load settings from Neo4j:', error);
@@ -44,6 +75,7 @@ const HomePage: React.FC = () => {
       }
     };
 
+    loadUserData();
     loadSettings();
   }, [parentEmail]);
 
@@ -82,7 +114,7 @@ const HomePage: React.FC = () => {
 
       <View style={[styles.avatar, { marginTop: 100 }]}>
         <Image
-          source={avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image}
+          source={avatar_list.find(avatar => avatar.avatar_id === avatarImage)?.avatar_image}
           style={{ width: 250, height: 250 }}
           resizeMode="contain"
         />
