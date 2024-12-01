@@ -103,6 +103,7 @@ export default function LogIn() {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#888888"
         keyboardType="email-address"
         value={email}
         onChangeText={(text) => {
@@ -113,6 +114,7 @@ export default function LogIn() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#888888"
         secureTextEntry
         value={password}
         onChangeText={(text) => {
@@ -125,6 +127,7 @@ export default function LogIn() {
           <TextInput
             style={styles.input}
             placeholder="Birthday (YYYY-MM-DD)"
+            placeholderTextColor="#888888"
             value={birthday}
             onChangeText={(text) => {
               setBirthday(text);
@@ -134,6 +137,7 @@ export default function LogIn() {
           <TextInput
             style={styles.input}
             placeholder="Parent's Email (if under 13)"
+            placeholderTextColor="#888888"
             keyboardType="email-address"
             value={parentEmail}
             onChangeText={(text) => {
