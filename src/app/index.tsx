@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
 import neo4j from "neo4j-driver";
 import { useRouter } from "expo-router";
 import styles from "./indexStyles";
+import {v4 as uuidv4 } from "uuid";
 import createNeo4jDriver from './utils/databaseSetUp';
+import { AuthContext } from "./AuthContext";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -12,6 +14,8 @@ export default function LogIn() {
   const [parentEmail, setParentEmail] = useState("");
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState(""); // State for error message
+  const { setSessionToken } = useContext(AuthContext);
+
   const router = useRouter();
 
   // Set up the Neo4j driver
@@ -24,7 +28,7 @@ export default function LogIn() {
 
   const handleAuth = async () => {
     const session = driver.session();
-  
+
     if (isSignUp) {
       if (!email || !password || !birthday) {
         setError("Email, password, and birthday cannot be blank.");
@@ -39,12 +43,14 @@ export default function LogIn() {
         setError("Parent's email is required for users under 13.");
         return;
       }
-  
+
       try {
         // Create a new user or ensure the user exists
+        const sessionToken = uuidv4(); // Generate a unique session token
+        setSessionToken(sessionToken);
         const result = await session.run(
           `MERGE (u:User {email: $email})
-           ON CREATE SET 
+           ON CREATE SET
              u.password = $password,
              u.name = $name,
              u.streak = 0,
@@ -53,11 +59,12 @@ export default function LogIn() {
              u.backgroundColor = '#FFFFFF',
              u.birthday = $birthday,
              u.parentEmail = $parentEmail,
-             u.needsParentalControls = $needsParentalControls
+             u.needsParentalControls = $needsParentalControls,
+             u.sessionToken = $sessionToken
            RETURN u`,
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls }
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken }
         );
-  
+
         if (result.summary.counters.containsUpdates()) {
           console.log("User signed up successfully.");
           router.push("/homePage");
@@ -73,13 +80,17 @@ export default function LogIn() {
       }
     } else {
       try {
-        // Validate existing user credentials
+        // Validate existing user credentials (LOG-IN)
+
+        const sessionToken = uuidv4();
+        setSessionToken(sessionToken);
         const result = await session.run(
           `MATCH (u:User {email: $email, password: $password})
+           SET u.sessionToken = $sessionToken
            RETURN u`,
-          { email, password }
+          { email, password, sessionToken }
         );
-  
+
         if (result.records.length > 0) {
           console.log("User signed in successfully.");
           router.push("/homePage");
@@ -103,6 +114,7 @@ export default function LogIn() {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#888888"
         keyboardType="email-address"
         value={email}
         onChangeText={(text) => {
@@ -113,6 +125,7 @@ export default function LogIn() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#888888"
         secureTextEntry
         value={password}
         onChangeText={(text) => {
@@ -125,6 +138,7 @@ export default function LogIn() {
           <TextInput
             style={styles.input}
             placeholder="Birthday (YYYY-MM-DD)"
+            placeholderTextColor="#888888"
             value={birthday}
             onChangeText={(text) => {
               setBirthday(text);
@@ -134,6 +148,7 @@ export default function LogIn() {
           <TextInput
             style={styles.input}
             placeholder="Parent's Email (if under 13)"
+            placeholderTextColor="#888888"
             keyboardType="email-address"
             value={parentEmail}
             onChangeText={(text) => {

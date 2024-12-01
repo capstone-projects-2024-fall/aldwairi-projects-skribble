@@ -20,7 +20,7 @@ interface JournalEntry {
   title: string;
   content: string;
   date: string;
-  imageIndex: number; // Changed from imagePath to imageIndex
+  imageIndex: number;
 }
 
   const JournalPage: React.FC = () => {
@@ -298,9 +298,9 @@ interface JournalEntry {
         </TouchableOpacity>
       )}
 
-      {/* Back Button */}
-      <TouchableOpacity style={[styles.button]} onPress={navigateToHomePage}>
-                <Text style={styles.buttonText}>Back</Text>
+      {/* Home Button */}
+      <TouchableOpacity style={[styles.homeButton]} onPress={navigateToHomePage}>
+                <Text style={styles.buttonText}>Home</Text>
         </TouchableOpacity>
 
       {isFormVisible && renderNewEntryForm()}

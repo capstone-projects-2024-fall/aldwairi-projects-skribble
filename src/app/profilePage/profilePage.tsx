@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -14,12 +14,14 @@ import { avatar_list } from '../../assets/avatars/avatarAssets';
 import styles from "./styles";
 import { logo_list } from '../../assets/logos/logosAssets';
 import createNeo4jDriver from '../utils/databaseSetUp';
-import { getDarkerShade } from '../utils/colorUtils'; 
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext";
 
 const ProfilePage: React.FC = () => {
   const [userName, setUserName] = useState("Loading...");
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
-  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image); 
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const { setSessionToken, sessionToken } = useContext(AuthContext);
   const [userInfo, setUserInfo] = useState({
     email: "",
     coins: 0,
@@ -30,60 +32,46 @@ const ProfilePage: React.FC = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleAvatarSelect = async (avatar_id: string) => {
-    setSelectedAvatar(avatar_id);
-    const session = driver.session();
-    try {
-      await session.run(
-        `MATCH (u:User {email: $email})
-         SET u.avatarImage = $avatarImage
-         RETURN u`,
-        { email: userInfo.email, avatarImage: avatar_id }
-      );
-      setAvatarImage(avatar_id);
-      Alert.alert("Success", "Avatar updated successfully.");
-    } catch (error) {
-      console.error("Failed to update avatar", error);
-      Alert.alert("Error", "Could not update avatar.");
-    } finally {
-      await session.close();
-    }
-  };
-
-  const navigateToParentalPortal = () => {
-    router.push('/parentalPortal/parentalPortal');
-  };
-
-  const navigateToHomePage = () => {
-    router.push('/homePage');
-  };
-
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
-  // Load user data from Neo4j
+  // Load user data from Neo4j using sessionToken
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session();
       try {
         const result = await session.run(
-          `MATCH (u:User {email: $email})
+          `MATCH (u:User {sessionToken: $sessionToken})
            RETURN u.email AS email, u.coins AS coins, u.streak AS streak, u.exp AS exp, u.name AS name, u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
-          { email: "<current_user_email>" } // Replace with the logged-in user's email
+          { sessionToken }
         );
 
+        console.log("Query result:", result); // Debugging: check the raw query result
+
         if (result.records.length > 0) {
-          const user = result.records[0].get("u").properties;
+          // Directly accessing the fields in the result
+          const record = result.records[0];
+          // Extract values from the result, handling the INTEGER type if necessary
+          const email = record.get("email");
+          const coins = record.get("coins")?.low || 0;  // Extracting low value from INTEGER object
+          const streak = record.get("streak")?.low || 0;  // Same here for streak
+          const exp = record.get("exp")?.low || 0;  // Same for exp
+          const name = record.get("name");
+          const backgroundColor = record.get("backgroundColor");
+          const avatarImage = record.get("avatarImage");
+
+          console.log("User properties:", { email, coins, streak, exp, name, backgroundColor, avatarImage }); // Debugging
+
           setUserInfo({
-            email: user.email,
-            coins: user.coins,
-            streak: user.streak,
-            exp: user.exp,
+            email,
+            coins,
+            streak,
+            exp,
           });
-          setUserName(user.name || "Unnamed User");
-          setBackgroundColor(user.backgroundColor || "#FFFFFF");
-          setAvatarImage(user.avatarImage || avatarImage);
-          setSelectedAvatar(user.avatarImage || avatar_list[0].avatar_image);
+          setUserName(name || "Unnamed User");
+          setBackgroundColor(backgroundColor || "#FFFFFF");
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+          setSelectedAvatar(avatarImage || avatar_list[0].avatar_image);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -95,27 +83,52 @@ const ProfilePage: React.FC = () => {
       }
     };
 
-    loadUserData();
-  }, []);
+    if (sessionToken) {
+      loadUserData();
+    } else {
+      Alert.alert("Error", "No session token found.");
+    }
+  }, [sessionToken]);
 
-  // Update user email in Neo4j
+  // Handle Avatar Selection
+  const handleAvatarSelect = async (avatar_id: string) => {
+    setSelectedAvatar(avatar_id);
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $sessionToken})
+         SET u.avatarImage = $avatarImage
+         RETURN u`,
+        { sessionToken, avatarImage: avatar_id }
+      );
+      setAvatarImage(avatar_id);
+      Alert.alert("Success", "Avatar updated successfully.");
+    } catch (error) {
+      console.error("Failed to update avatar", error);
+      Alert.alert("Error", "Could not update avatar.");
+    } finally {
+      await session.close();
+    }
+  };
+
+  // Update User Email
   const updateUserEmail = async () => {
     if (!newEmail.trim()) {
       Alert.alert("Error", "Email cannot be empty.");
       return;
     }
-  
+
     const session = driver.session();
     try {
       const result = await session.run(
         `
-        MATCH (u:User {email: $email})
+        MATCH (u:User {sessionToken: $sessionToken})
         SET u.email = $newEmail
         RETURN u.email AS updatedEmail
         `,
-        { email: userInfo.email, newEmail } // Ensure email matches your database record
+        { sessionToken, newEmail }
       );
-  
+
       if (result.records.length > 0) {
         const updatedEmail = result.records[0].get("updatedEmail");
         setUserInfo({ ...userInfo, email: updatedEmail });
@@ -132,16 +145,17 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Update background color in Neo4j
+  // Update Background Color
   const updateBackgroundColor = async (color: string) => {
     const session = driver.session();
     try {
       await session.run(
-        `MATCH (u:User {email: $email})
+        `MATCH (u:User {sessionToken: $sessionToken})
          SET u.backgroundColor = $color
          RETURN u`,
-        { email: userInfo.email, color }
+        { sessionToken, color }
       );
+
 
       setBackgroundColor(color);
     } catch (error) {
@@ -152,25 +166,49 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    router.push("/");
+  const navigateToParentalPortal = () => {
+    router.push('/parentalPortal/parentalPortal');
+  };
+
+  const navigateToHomePage = () => {
+    router.push('/homePage');
+  };
+
+  // Handle Logout
+  const handleLogout = async () => {
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $token})
+         REMOVE u.sessionToken`,
+        { token: sessionToken }
+      );
+
+      console.log("User logged out.");
+      setSessionToken(null); // Clear session token in memory
+      router.push("/");
+    } catch (error) {
+      console.error("Failed to log out user", error);
+    } finally {
+      await session.close();
+    }
   };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
       <View style={styles.profileContainer}>
 
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
-      {/* Title */}
-      <Text style={styles.title}>Profile</Text>
+        {/* Title */}
+        <Text style={styles.title}>Profile</Text>
 
         {/* User Info Section */}
         <View style={styles.userInfo}>
@@ -238,42 +276,42 @@ const ProfilePage: React.FC = () => {
           </View>
         </View>
 
-        {/* Allow user to select a new avatar: show all avatars and allow user to select one */}
+        {/* Allow user to select a new avatar */}
         <View style={styles.container}>
-            <Text style={styles.title}>Select a new avatar</Text>
-            <View style={styles.avatarContainer}>
-                {avatar_list.map(avatar => (
-                    <TouchableOpacity key={avatar.avatar_id} onPress={() => handleAvatarSelect(avatar.avatar_id)}>
-                        <Image
-                            source={avatar.avatar_image}
-                            style={[
-                                styles.avatar,
-                                selectedAvatar === avatar.avatar_id && styles.selectedAvatar
-                            ]}
-                            resizeMode="contain"
-                        />
-                    </TouchableOpacity>
-                ))}
-            </View>
-            
-        <View style={styles.buttonContainer}>
-        {/* Button to navigate to parental portal  */}
-        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToParentalPortal}>
-                <Text style={styles.buttonText}>Go to Parental Portal</Text>
-        </TouchableOpacity>
+          <Text style={styles.title}>Select a new avatar</Text>
+          <View style={styles.avatarContainer}>
+            {avatar_list.map(avatar => (
+              <TouchableOpacity key={avatar.avatar_id} onPress={() => handleAvatarSelect(avatar.avatar_id)}>
+                <Image
+                  source={avatar.avatar_image}
+                  style={[
+                    styles.avatar,
+                    selectedAvatar === avatar.avatar_id && styles.selectedAvatar
+                  ]}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* Back Button */}
-        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToHomePage}>
-                <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            {/* Button to navigate to parental portal */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToParentalPortal}>
+              <Text style={styles.buttonText}>Go to Parental Portal</Text>
+            </TouchableOpacity>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={handleLogout}>
-          <Text style={styles.buttonText}>Log Out</Text>
-        </TouchableOpacity>
+            {/* Back Button */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToHomePage}>
+              <Text style={styles.buttonText}>Back</Text>
+            </TouchableOpacity>
+
+            {/* Logout Button */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
     </ScrollView>
   );
 };
