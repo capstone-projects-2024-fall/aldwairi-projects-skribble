@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, TextInput, FlatList, SafeAreaView, Modal, Alert, Dimensions, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState('friends');
@@ -23,6 +24,8 @@ const FriendsPage = () => {
     { id: 4, name: 'NightPhantom', avatar: require('../../assets/images/panda/panda1.png') },
     { id: 5, name: 'DarkVortex', avatar: require('../../assets/images/bear/bear2.png') }
   ]);
+
+  const router = useRouter();
 
   // Function to get header color
   const getHeaderColor = (bgColor) => {
@@ -111,7 +114,7 @@ const FriendsPage = () => {
         <View style={{
           width: imageSize,
           height: imageSize,
-          alignItems: 'center', // Center the image within container
+          alignItems: 'center', 
           justifyContent: 'center'
         }}>
           <Image
@@ -280,6 +283,16 @@ const FriendsPage = () => {
           alignItems: 'center',
           padding: 15
         }}>
+          <TouchableOpacity 
+          onPress={() => router.push('/homePage')}
+            style={{
+              alignItems: 'center',
+              backgroundColor: 'white',
+              padding: 8,
+              borderRadius: 5
+            }}>
+            <Text style={{ color: headerColor, marginRight: 15 }}>Back</Text>
+          </TouchableOpacity>
           <Text style={{
             color: 'white',
             fontSize: 18,
@@ -293,7 +306,7 @@ const FriendsPage = () => {
               borderRadius: 5
             }}
           >
-            <Text style={{ color: headerColor }}>Add Friend</Text>
+            <Text style={{ color: headerColor}}>Add Friend</Text>
           </TouchableOpacity>
         </View>
 

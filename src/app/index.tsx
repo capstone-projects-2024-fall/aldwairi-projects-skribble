@@ -1,9 +1,8 @@
 import React, { useState, useContext } from "react";
-import { Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
-import neo4j from "neo4j-driver";
+import { Text, View, TextInput, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import uuid from 'react-native-uuid'; // Add this import
 import styles from "./indexStyles";
-import {v4 as uuidv4 } from "uuid";
 import createNeo4jDriver from './utils/databaseSetUp';
 import { AuthContext } from "./AuthContext";
 
@@ -46,7 +45,7 @@ export default function LogIn() {
 
       try {
         // Create a new user or ensure the user exists
-        const sessionToken = uuidv4(); // Generate a unique session token
+        const sessionToken = uuid.v4(); 
         setSessionToken(sessionToken);
         const result = await session.run(
           `MERGE (u:User {email: $email})
@@ -82,7 +81,7 @@ export default function LogIn() {
       try {
         // Validate existing user credentials (LOG-IN)
 
-        const sessionToken = uuidv4();
+        const sessionToken = uuid.v4(); // Use this instead of the previous generateSessionToken()
         setSessionToken(sessionToken);
         const result = await session.run(
           `MATCH (u:User {email: $email, password: $password})
