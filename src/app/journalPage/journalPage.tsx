@@ -44,6 +44,41 @@ interface JournalEntry {
     require('../../assets/images/bear/bear5.png')
   ];
 
+  const DOG_IMAGES = [
+    require('../../assets/images/dog/dog1.png'),
+    require('../../assets/images/dog/dog2.png'),
+    require('../../assets/images/dog/dog3.png'),
+    require('../../assets/images/dog/dog4.png'),
+    require('../../assets/images/dog/dog5.png')
+  ];
+
+  const PANDA_IMAGES = [
+    require('../../assets/images/panda/panda1.png'),
+    require('../../assets/images/panda/panda2.png'),
+    require('../../assets/images/panda/panda3.png'),
+    require('../../assets/images/panda/panda4.png'),
+    require('../../assets/images/panda/panda5.png')
+  ];
+
+  const PENGUIN_IMAGES = [
+    require('../../assets/images/penguin/penguin1.png'),
+    require('../../assets/images/penguin/penguin2.png'),
+    require('../../assets/images/penguin/penguin3.png'),
+    require('../../assets/images/penguin/penguin4.png'),
+    require('../../assets/images/penguin/penguin5.png')
+  ];
+
+  const TIGER_IMAGES = [
+    require('../../assets/images/tiger/tiger1.png'),
+    require('../../assets/images/tiger/tiger2.png'),
+    require('../../assets/images/tiger/tiger3.png'),
+    require('../../assets/images/tiger/tiger4.png'),
+    require('../../assets/images/tiger/tiger5.png')
+  ];
+
+
+
+
   // Load journal entries from AsyncStorage on component mount
   useEffect(() => {
     const loadEntries = async () => {
