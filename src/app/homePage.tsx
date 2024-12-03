@@ -100,7 +100,7 @@ const HomePage: React.FC = () => {
   const logoDimensions = getLogoDimensions();
 
   return (
-    <View style={styles.homeContainer}>
+    <View style={[styles.homeContainer, { backgroundColor}]}>
       <View style={[
         styles.logoContainer,
         Platform.OS === 'web' ? styles.logoContainerWeb : styles.logoContainerMobile
