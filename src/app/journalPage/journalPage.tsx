@@ -222,7 +222,7 @@ const JournalPage = () => {
           style={[styles.deleteButton]}
           onPress={() => showDeleteConfirmation(entries.indexOf(currentEntry!))}
         >
-          <Text style={styles.buttonText}>Delete Entry</Text>
+          <Text style={styles.deleteButton}>Delete Entry</Text>
         </TouchableOpacity>
       </View>
     </View>
