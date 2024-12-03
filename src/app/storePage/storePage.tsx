@@ -26,14 +26,15 @@ const StorePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {email: $email})
-          u.backgroundColor AS backgroundColor
-           RETURN u.coins AS coins`,
+           RETURN u.coins AS coins, u.backgroundColor AS backgroundColor`,
           { email: "<current_user_email>" } // Replace with the logged-in user's email
         );
 
         if (result.records.length > 0) {
           const coins = result.records[0].get("coins").toNumber();
+          const backgroundColor = result.records[0].get("backgroundColor");
           setUserCoins(coins);
+          setBackgroundColor(backgroundColor);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -64,8 +65,9 @@ const StorePage: React.FC = () => {
         await session.run(
           `MATCH (u:User {email: $email})
            SET u.coins = u.coins - $price
+           CREATE (u)-[:OWNS]->(:Item {item_id: $item_id})
            RETURN u`,
-          { email: "<current_user_email>", price: selectedItem.price } // Replace with the logged-in user's email
+          { email: "<current_user_email>", price: selectedItem.price, item_id: selectedItem._id } // Replace with the logged-in user's email
         );
 
         setUserCoins(userCoins - selectedItem.price);
@@ -92,7 +94,6 @@ const StorePage: React.FC = () => {
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.push('/homePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
           <Text style={styles.headerButtonText}>Back</Text>
-        
         </TouchableOpacity>
         <View style={styles.logoContainer}>
           <Image

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { category_list, clothes_list } from '../../assets/clothing/clothingAssets';
 import styles from './styles';
 import { logo_list } from '../../assets/logos/logosAssets';
@@ -12,7 +12,8 @@ const ClosetPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [userCoins, setUserCoins] = useState<number>(0);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [ownedItems, setOwnedItems] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const router = useRouter();
 
@@ -20,32 +21,35 @@ const ClosetPage: React.FC = () => {
   const driver = createNeo4jDriver();
 
   useEffect(() => {
-    // Fetch user coins from the database
-    const fetchUserCoins = async () => {
+    // Fetch user data from the database
+    const fetchUserData = async () => {
       const session = driver.session();
       try {
         const result = await session.run(
-          `MATCH (u:User {email: $email})
-          u.backgroundColor AS backgroundColor
-           RETURN u.coins AS coins`,
+          `MATCH (u:User {email: $email})-[:OWNS]->(i:Item)
+           RETURN u.selectedAvatar AS selectedAvatar, u.backgroundColor AS backgroundColor, collect(i.item_id) AS ownedItems`,
           { email: "<current_user_email>" } // Replace with the logged-in user's email
         );
 
         if (result.records.length > 0) {
-          const coins = result.records[0].get("coins").toNumber();
-          setUserCoins(coins);
+          const selectedAvatar = result.records[0].get("selectedAvatar");
+          const backgroundColor = result.records[0].get("backgroundColor");
+          const ownedItems = result.records[0].get("ownedItems");
+          setSelectedAvatar(selectedAvatar);
+          setBackgroundColor(backgroundColor);
+          setOwnedItems(ownedItems);
         } else {
           Alert.alert("Error", "User not found.");
         }
       } catch (error) {
-        console.error("Failed to fetch user coins", error);
-        Alert.alert("Error", "Could not fetch user coins.");
+        console.error("Failed to fetch user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
       } finally {
         await session.close();
       }
     };
 
-    fetchUserCoins();
+    fetchUserData();
   }, []);
 
   const handleCategorySelect = (category_id: string) => {
@@ -58,8 +62,10 @@ const ClosetPage: React.FC = () => {
   };
 
   const filteredItems = selectedCategory
-    ? clothes_list.filter(item => item.category === selectedCategory)
-    : clothes_list;
+    ? clothes_list.filter(item => item.category === selectedCategory && ownedItems.includes(item._id))
+    : clothes_list.filter(item => ownedItems.includes(item._id));
+
+  const selectedAvatarImage = avatar_list.find(avatar => avatar.avatar_id === selectedAvatar)?.avatar_image;
 
   return (
     <ScrollView style={styles.container}>
@@ -86,11 +92,13 @@ const ClosetPage: React.FC = () => {
       <View style={styles.mainContent}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          <Image
-            source={avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image}
-            style={styles.avatar}
-            resizeMode="contain"
-          />
+          {selectedAvatarImage && (
+            <Image
+              source={selectedAvatarImage}
+              style={styles.avatar}
+              resizeMode="contain"
+            />
+          )}
           <Image
             source={require('../../assets/images/podium.png')}
             style={styles.podium}
