@@ -45,7 +45,7 @@ export default function LogIn() {
 
       try {
         // Create a new user or ensure the user exists
-        const sessionToken = uuid.v4(); // Use this instead of the previous generateSessionToken()
+        const sessionToken = uuid.v4(); 
         setSessionToken(sessionToken);
         const result = await session.run(
           `MERGE (u:User {email: $email})
