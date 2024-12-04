@@ -120,18 +120,18 @@ const FriendsPage = () => {
           <Image
             source={item.avatar}
             style={{
-              width: '120%', 
-              height: '105%', 
+              width: '120%',
+              height: '105%',
               resizeMode: 'contain',
-              margin: '2%', 
+              margin: '2%',
             }}
           />
         </View>
         <Text
           style={{
-            textAlign: 'center', 
+            textAlign: 'center',
             fontWeight: 'bold',
-            fontSize: 26, 
+            fontSize: 26,
             color: 'black',
             marginTop: 10,
             alignSelf: 'center'
@@ -219,6 +219,38 @@ const FriendsPage = () => {
     );
   };
 
+  const removeFriend = (friend) => {
+    if (Platform.OS === 'web') {
+      // Use window.confirm for the web
+      const confirmation = window.confirm(`Are you sure you want to remove ${friend.name}?`);
+      if (confirmation) {
+        setFriendsList((prevFriendsList) =>
+          prevFriendsList.filter((f) => f.id !== friend.id)
+        );
+        setSelectedFriend(null);
+      }
+    } else {
+      // Use Alert.alert for mobile
+      Alert.alert(
+        'Remove Friend',
+        `Are you sure you want to remove ${friend.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Yes',
+            onPress: () => {
+              setFriendsList((prevFriendsList) =>
+                prevFriendsList.filter((f) => f.id !== friend.id)
+              );
+              setSelectedFriend(null);
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   const renderFriendProfile = () => {
     if (!selectedFriend) return null;
     return (
@@ -227,16 +259,33 @@ const FriendsPage = () => {
           backgroundColor: headerColor,
           flexDirection: 'row',
           alignItems: 'center',
-          padding: 15
+          padding: 15,
+          justifyContent: 'space-between'
         }}>
-          <TouchableOpacity onPress={() => setSelectedFriend(null)}>
-            <Text style={{ color: 'white', marginRight: 15 }}>Back</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => setSelectedFriend(null)}>
+              <Text style={{ color: 'white', marginRight: 15 }}>Back</Text>
+            </TouchableOpacity>
+            <Text style={{
+              color: 'white',
+              fontSize: 18,
+              fontWeight: 'bold'
+            }}>{selectedFriend.name}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => {
+              // Explicit console log to debug
+              console.log('Remove button pressed', selectedFriend);
+              removeFriend(selectedFriend);
+            }}
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              padding: 8,
+              borderRadius: 5
+            }}
+          >
+            <Text style={{ color: 'white' }}>Remove</Text>
           </TouchableOpacity>
-          <Text style={{
-            color: 'white',
-            fontSize: 18,
-            fontWeight: 'bold'
-          }}>{selectedFriend.name}</Text>
         </View>
         <View style={{ alignItems: 'center', padding: 20 }}>
           <View style={{
@@ -353,10 +402,10 @@ const FriendsPage = () => {
                   alignItems: 'center',
                   marginLeft: 5
                 }}>
-                  <Text style={{ 
-                    color: 'white', 
-                    fontSize: 12, 
-                    fontWeight: 'bold' 
+                  <Text style={{
+                    color: 'white',
+                    fontSize: 12,
+                    fontWeight: 'bold'
                   }}>
                     {friendRequests.length}
                   </Text>
