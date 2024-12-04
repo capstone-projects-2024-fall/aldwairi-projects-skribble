@@ -22,11 +22,12 @@ const styles = StyleSheet.create({
         maxHeight: 100,
     },
     title: {
-        fontSize: 24,
+        fontSize: 36,
         fontWeight: 'bold',
         textAlign: 'center',
         marginVertical: 20,
         color: '#333',
+        marginTop: -30,
     },
     section: {
         marginBottom: 30,
@@ -38,14 +39,14 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     currentEmail: {
-        fontSize: 16,
+        fontSize: 18,
         marginBottom: 10,
     },
     bold: {
         fontWeight: 'bold',
     },
     label: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '500',
         marginBottom: 5,
     },
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#000',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '600',
     },
     controlItem: {

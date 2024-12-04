@@ -117,7 +117,7 @@ const ParentalControlPanel: React.FC = () => {
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>Parental Control Panel</Text>
+            <Text style={styles.title}>Parental Controls</Text>
 
             {/* Email Section */}
             <View style={styles.section}>

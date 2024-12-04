@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { category_list, clothes_list } from '../../assets/clothing/clothingAssets';
 import styles from './styles';
@@ -6,7 +6,8 @@ import { logo_list } from '../../assets/logos/logosAssets';
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import { useRouter } from 'expo-router';
 import createNeo4jDriver from '../utils/databaseSetUp';
-import { getDarkerShade } from '../utils/colorUtils'; 
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext"; 
 
 const ClosetPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -15,6 +16,7 @@ const ClosetPage: React.FC = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [ownedItems, setOwnedItems] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const { sessionToken } = useContext(AuthContext);
   const router = useRouter();
 
   // Set up the Neo4j driver
@@ -26,9 +28,11 @@ const ClosetPage: React.FC = () => {
       const session = driver.session();
       try {
         const result = await session.run(
-          `MATCH (u:User {email: $email})-[:OWNS]->(i:Item)
-           RETURN u.selectedAvatar AS selectedAvatar, u.backgroundColor AS backgroundColor, collect(i.item_id) AS ownedItems`,
-          { email: "<current_user_email>" } 
+          `MATCH (u:User {sessionToken: $sessionToken})-[:OWNS]->(i:Item)
+           RETURN u.selectedAvatar AS selectedAvatar, 
+                  u.backgroundColor AS backgroundColor, 
+                  collect(i.item_id) AS ownedItems`,
+          { sessionToken} 
         );
 
         if (result.records.length > 0) {
@@ -50,7 +54,7 @@ const ClosetPage: React.FC = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [ sessionToken]);
 
   const handleCategorySelect = (category_id: string) => {
     setSelectedCategory(category_id);

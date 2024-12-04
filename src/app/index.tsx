@@ -61,7 +61,7 @@ export default function LogIn() {
              u.password = $password,
              u.name = $name,
              u.streak = 0,
-             u.coins = 0,
+             u.coins = 100,
              u.exp = 0,
              u.backgroundColor = '#FFFFFF',
              u.birthday = $birthday,

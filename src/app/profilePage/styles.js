@@ -36,10 +36,19 @@ const styles = StyleSheet.create({
     maxHeight: 100,
   },
   title: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
+    marginBottom: 20,
+    marginTop: -50,
+  },
+  avatarTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
   userInfo: {
@@ -52,7 +61,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 20,
     marginVertical: 5,
     textAlign: 'center',
   },
@@ -63,7 +72,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -104,7 +113,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#000',
-    fontSize: 16,
+    fontSize: 18,
     marginRight: 8,
     fontWeight: 'bold',
   },
@@ -118,6 +127,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 45,
     margin: 10,
+    marginBottom: 20,
   },
   selectedAvatar: {
     borderWidth: 2,

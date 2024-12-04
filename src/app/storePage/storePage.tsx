@@ -6,7 +6,7 @@ import styles from './styles';
 import { logo_list } from '../../assets/logos/logosAssets';
 import { useRouter } from 'expo-router';
 import createNeo4jDriver from '../utils/databaseSetUp';
-import { getDarkerShade } from '../utils/colorUtils'; 
+import { getDarkerShade, getLighterShade } from '../utils/colorUtils'; 
 import { AuthContext } from '../AuthContext';
 
 const StorePage: React.FC = () => {
@@ -17,6 +17,7 @@ const StorePage: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { sessionToken, setSessionToken } = useContext(AuthContext);
   const router = useRouter();
+  const coinIcon = require('../../assets/images/coin.png');
 
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
@@ -88,10 +89,10 @@ const StorePage: React.FC = () => {
 
   const filteredItems = selectedCategory
     ? clothes_list.filter(item => item.category === selectedCategory)
-    : clothes_list;
+    : clothes_list.filter(item => item.category === 'bottoms');
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor }]}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.push('/homePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
@@ -115,11 +116,17 @@ const StorePage: React.FC = () => {
       {/* Category Selection */}
       <View style={styles.categoryContainer}>
         {category_list.map(category => (
-          <TouchableOpacity key={category.category_id} onPress={() => handleCategorySelect(category.category_id)}>
+          <TouchableOpacity key={category.category_id} style={{ padding: 5, paddingLeft: 40, paddingRight: 40, borderRadius: 5, backgroundColor: getDarkerShade(backgroundColor) }} onPress={() => handleCategorySelect(category.category_id)}>
             <Image source={category.category_image} style={styles.categoryImage} resizeMode="contain" />
             <Text style={styles.categoryText}>{category.category_id}</Text>
           </TouchableOpacity>
         ))}
+      </View>
+
+      {/* Coins */}
+      <View style={styles.coinsContainer}>
+        <Image source={coinIcon} style={{ width: 40, height: 40}} />
+        <Text style={styles.coinsLabel}>{userCoins}</Text>
       </View>
 
       {/* Clothing Items */}
@@ -129,7 +136,10 @@ const StorePage: React.FC = () => {
             <View style={styles.item}>
               <Image source={item.image} style={styles.itemImage} resizeMode="contain" />
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image source={coinIcon} style={{ width: 20, height: 20, marginRight: 5, marginTop: -7 }} />
+                  <Text style={styles.modalItemPrice}>{item.price.toFixed(2)}</Text>
+                </View>
             </View>
           </TouchableOpacity>
         ))}
@@ -149,12 +159,15 @@ const StorePage: React.FC = () => {
               <>
                 <Image source={selectedItem.image} style={styles.modalImage} resizeMode="contain" />
                 <Text style={styles.modalItemName}>{selectedItem.name}</Text>
-                <Text style={styles.modalItemPrice}>Price: ${selectedItem.price.toFixed(2)}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Image source={coinIcon} style={{ width: 20, height: 20, marginRight: 5, marginTop: -7 }} />
+                  <Text style={styles.modalItemPrice}>{selectedItem.price.toFixed(2)}</Text>
+                </View>
                 <Text style={styles.modalUserCoins}>Your Coins: {userCoins}</Text>
-                <TouchableOpacity style={styles.modalButton} onPress={handlePurchase}>
+                <TouchableOpacity style={[styles.modalButton, {backgroundColor: getLighterShade(backgroundColor)}]} onPress={handlePurchase}>
                   <Text style={styles.modalButtonText}>Purchase</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: '#FF6347' }]} onPress={() => setModalVisible(false)}>
+                <TouchableOpacity style={[styles.modalButton, {backgroundColor: getDarkerShade(backgroundColor)}]}  onPress={() => setModalVisible(false)}>
                   <Text style={styles.modalButtonText}>Cancel</Text>
                 </TouchableOpacity>
               </>
