@@ -32,7 +32,7 @@ export const styles = StyleSheet.create({
    alignSelf: 'center',
    padding: 12,
    borderWidth: 1.5,
-   borderColor: '#454545',
+   borderColor: '#000',
    borderRadius: 8,
    fontSize: 16,
    backgroundColor: 'white',
@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
    alignSelf: 'center',
    padding: 12,
    borderWidth: 1.5,
-   borderColor: '#454545',
+   borderColor: '#000',
    borderRadius: 8,
    fontSize: 16,
    backgroundColor: 'white',
@@ -96,7 +96,7 @@ export const styles = StyleSheet.create({
    alignItems: 'center', 
    justifyContent: 'center',
    borderWidth: 1,
-   borderColor: '#ccc',
+   borderColor: '#000',
    borderRadius: 4,
    fontSize: 16,
    marginBottom: 16,
@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
    alignItems: 'center', 
    justifyContent: 'center',
    borderWidth: 1,
-   borderColor: '#ccc',
+   borderColor: '#000',
    borderRadius: 4,
    fontSize: 16,
    marginBottom: 16,
@@ -131,12 +131,12 @@ export const styles = StyleSheet.create({
    marginBottom: 10,
  },
  outlinedButton: {
+   borderRadius: 8, 
+   borderWidth: 3,
+   borderColor: '#000',
    paddingVertical: 10,
    paddingHorizontal: 15,
    backgroundColor: '#05630b',
-   borderRadius: 5,
-   borderWidth: 2,
-   borderColor: '#045209',
    minWidth: 100,
    alignItems: 'center',
    justifyContent: 'center',
@@ -156,9 +156,10 @@ export const styles = StyleSheet.create({
    paddingHorizontal: 20,
    backgroundColor: '#05630b',
    borderRadius: 40,
+   borderWidth: 3,
  },
  newEntryButtonText: {
-   color: 'white',
+   color: '#000',
    fontSize: 20,
    fontWeight: 'bold',
    textAlign: 'center',
@@ -170,7 +171,7 @@ export const styles = StyleSheet.create({
    borderRadius: 5,
  },
  styledButtonText: {
-   color: 'white',
+   color: '#000',
    fontSize: 20,
    fontWeight: 'bold',
  },
@@ -183,7 +184,7 @@ export const styles = StyleSheet.create({
    backgroundColor: '#FF0000',
    borderRadius: 5,
    borderWidth: 2,
-   borderColor: '#FF0000',
+   borderColor: '#000',
    minWidth: 100,
    alignItems: 'center',
    justifyContent: 'center',
@@ -244,14 +245,14 @@ export const styles = StyleSheet.create({
    backgroundColor: '#dc3545',
  },
  cancelDeleteButtonText: {
-   color: '#333',
+   color: '#000',
    fontSize: 16,
-   fontWeight: '600',
+   fontWeight: 'bold',
  },
  confirmDeleteButtonText: {
-   color: 'white',
+   color: '000',
    fontSize: 16,
-   fontWeight: '600',
+   fontWeight: 'bold',
  },
 
 
@@ -287,8 +288,8 @@ export const styles = StyleSheet.create({
  },
  backButtonText: {
    fontSize: 18,
-   color: '#05630b',
-   fontWeight: '600',
+   color: '#000',
+   fontWeight: 'bold',
  },
  homeButton: {
   ...(Platform.OS === 'web' ? {
@@ -306,6 +307,7 @@ export const styles = StyleSheet.create({
   backgroundColor: '#0B8457', 
   borderRadius: 40,
   marginTop: 5,
+  borderWidth: 3,
 },
 
  // Entry Styles
@@ -409,6 +411,7 @@ export const styles = StyleSheet.create({
    padding: 20,
    borderRadius: 10,
    marginTop: 20,
+   margin: 50,
    shadowColor: '#000',
    shadowOffset: {
      width: 0,
@@ -453,7 +456,7 @@ export const styles = StyleSheet.create({
    alignItems: 'center',
  },
  modalHeaderText: {
-   color: 'white',
+   color: '#000',
    fontSize: 20,
    fontWeight: 'bold',
  },
@@ -461,20 +464,21 @@ export const styles = StyleSheet.create({
    padding: 8,
  },
  modalCloseButtonText: {
-   color: 'white',
+   color: '000',
+   fontWeight: 'bold',
    fontSize: 24,
  },
  modalBody: {
    backgroundColor: '#ededed',
    padding: 24,
+   borderRadius: 8,
    maxHeight: windowHeight * 0.6,
  },
 
-
  // Prompt Styles
  promptSelectButton: {
-   backgroundColor: '#0066cc',
-   borderColor: '#005299',
+   backgroundColor: '#000',
+   borderColor: '#000',
  },
  promptList: {
    gap: 16,
@@ -484,7 +488,7 @@ export const styles = StyleSheet.create({
    padding: 16,
    borderRadius: 8,
    borderWidth: 1,
-   borderColor: '#dddddd',
+   borderColor: '#000',
    marginVertical: 6,
    shadowColor: '#000',
    shadowOffset: {
@@ -497,11 +501,12 @@ export const styles = StyleSheet.create({
  },
  promptButtonText: {
    fontSize: 16,
-   color: '#333333',
+   color: '#000',
+   fontWeight: 'bold',
    textAlign: 'left',
  },
  buttonText: {
-   color: 'white',
+   color: '#000',
    fontSize: 16,
    fontWeight: 'bold',
    textAlign: 'center',
@@ -512,15 +517,15 @@ export const styles = StyleSheet.create({
  cancelDeleteButton: {
    backgroundColor: '#f8f9fa',
    borderWidth: 1,
-   borderColor: '#dee2e6',
+   borderColor: '#000',
  },
  cancelButton: {
    backgroundColor: '#666666',
-   borderColor: '#555555',
+   borderColor: '#000',
  },
  cancelModalButton: {
    backgroundColor: '#666666',
-   borderColor: '#555555',
+   borderColor: '#000',
  },
 
  // Confirmation Modal
@@ -530,7 +535,7 @@ export const styles = StyleSheet.create({
  },
  confirmationTitle: {
    fontSize: 20,
-   color: '#dc3545',
+   color: '#000',
    marginBottom: 16,
  },
 });
