@@ -306,7 +306,7 @@ const ProfilePage: React.FC = () => {
 
         {/* Update Background Color Section */}
         <View style={styles.section}>
-          <Text style={{ ...styles.label, marginTop: 20 }}>Background Color:</Text>
+          <Text style={{ ...styles.label, marginTop: 40 }}>Background Color:</Text>
           <View style={styles.colorButtons}>
             <TouchableOpacity
               style={[styles.colorButton, { backgroundColor: "#99CA9C"}]}
@@ -331,7 +331,7 @@ const ProfilePage: React.FC = () => {
 
         {/* Allow user to select a new avatar */}
         <View style={styles.container}>
-          <Text style={styles.title}>Select a new avatar</Text>
+          <Text style={styles.avatarTitle}>Select a new avatar</Text>
           <View style={styles.avatarContainer}>
             {avatar_list.map(avatar => (
               <TouchableOpacity key={avatar.avatar_id} onPress={() => handleAvatarSelect(avatar.avatar_id)}>
