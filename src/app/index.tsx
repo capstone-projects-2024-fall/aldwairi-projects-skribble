@@ -82,7 +82,8 @@ export default function LogIn() {
              u.allowMediaSharing = $allowMediaSharing, 
              u.timeLimit = $timeLimit,
              u.allowAddViewFriends = $allowAddViewFriends,
-             u.avatarImage = $defaultAvatar
+             u.avatarImage = $defaultAvatar,
+             u.friendCode = $friendCode
            WITH u
            MERGE (p:pet {petID: $petID})
            ON CREATE SET
@@ -91,7 +92,7 @@ export default function LogIn() {
            MERGE (u)-[:HAS_PET]->(p)
            RETURN u, p`,
            
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar, petID, petName  }
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar, friendCode, petID, petName  }
         );
 
         if (result.summary.counters.containsUpdates()) {
