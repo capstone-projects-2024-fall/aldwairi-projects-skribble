@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { styles } from '../journalPage/styles';
 import {
   View,
@@ -13,8 +13,10 @@ import {
   Animated
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { avatar_list } from '../../assets/avatars/avatarAssets';
 import { useRouter } from "expo-router";
 import createNeo4jDriver from '../utils/databaseSetUp';
+import { AuthContext } from "../AuthContext";
 
 interface JournalEntry {
   title: string;
@@ -34,6 +36,8 @@ interface JournalEntry {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
     const [isGifVisible, setIsGifVisible] = useState(false);
+    const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+    const { sessionToken } = useContext(AuthContext);
     const fadeAnim = useState(new Animated.Value(0))[0];
 
   const BEAR_IMAGES = [
@@ -76,11 +80,53 @@ interface JournalEntry {
     require('../../assets/images/tiger/tiger5.png')
   ];
 
+  const getImageSet = (id: string | null) => {
+    console.log("set:", id)
+    switch (id) {
+      case '1':
+        return BEAR_IMAGES;
+      case '2':
+        return DOG_IMAGES;
+      case '3':
+        return PANDA_IMAGES;
+      case '4':
+        return PENGUIN_IMAGES;
+      case '5':
+        return TIGER_IMAGES;
+      default:
+        return BEAR_IMAGES; // Default to BEAR_IMAGES if no avatarImageID
+    }
+  };
 
-
+  const driver = createNeo4jDriver();
 
   // Load journal entries from AsyncStorage on component mount
   useEffect(() => {
+    const loadUserData = async () => {
+      const session = driver.session()
+      try {
+        const result = await session.run(
+          'MATCH (u:User {sessionToken: $sessionToken}) RETURN u.backgroundColor AS backgroundColor, u.avatarImage as avatarImage',
+          { sessionToken }
+        );
+        if (result.records.length > 0) {
+          // Directly accessing the fields in the result
+          const record = result.records[0];
+          // Extract values from the result, handling the INTEGER type if necessary
+          const backgroundColor = record.get("backgroundColor");
+          const avatarImage = record.get("avatarImage");
+          setBackgroundColor(backgroundColor || "#FFFFFF");
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+        } else {
+          Alert.alert("Error", "User not found.");
+        }
+      } catch (error) {
+        console.error("Failed to load user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
+      } finally {
+        await session.close();
+    }
+  };
     const loadEntries = async () => {
       try {
         const storedEntries = await AsyncStorage.getItem('journalEntries');
@@ -92,16 +138,16 @@ interface JournalEntry {
         if (savedColor) {
           setBackgroundColor(savedColor);
         } else {
-          const randomColor = getRandomBackgroundColor();
-          setBackgroundColor(randomColor);
-          await AsyncStorage.setItem('backgroundColor', randomColor);
+          setBackgroundColor("#FFEBEE")
         }
       } catch (error) {
         console.error('Error loading entries:', error);
       }
     };
     loadEntries();
-  }, []);
+    loadUserData();
+    console.log("User properties:", { backgroundColor, avatarImage });
+  }, [sessionToken]);
 
   // Save journal entries to AsyncStorage whenever they change
   useEffect(() => {
@@ -128,10 +174,10 @@ interface JournalEntry {
         duration: 500,
         useNativeDriver: true,
       }),
-      Animated.delay(2000), // Show GIF for 2 seconds
+      Animated.delay(1100), // Show GIF for 2 seconds
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 400,
         useNativeDriver: true,
       })
     ]).start(() => {
@@ -140,13 +186,11 @@ interface JournalEntry {
   };
 
   const getRandomImageIndex = (): number => {
-    return Math.floor(Math.random() * BEAR_IMAGES.length);
+    const imageSet = getImageSet(avatarImage);
+    console.log("imageSet:", {imageSet})
+    return Math.floor(Math.random() * imageSet.length);
   };
 
-  const getRandomBackgroundColor = (): string => {
-    const colors = ['#FFEBEE', '#E3F2FD', '#C8E6C9', '#FFF9C4', '#F1F8E9'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
 
   const showNewEntryForm = () => {
     setIsFormVisible(true);
@@ -281,7 +325,7 @@ interface JournalEntry {
         >
           <View style={styles.imageContainer}>
             <Image
-              source={BEAR_IMAGES[entry.imageIndex]}
+              source={(getImageSet(avatarImage))[entry.imageIndex]}
               style={styles.entryImage}
             />
           </View>
