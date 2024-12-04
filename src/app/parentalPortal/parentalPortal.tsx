@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styles from './styles';
 import { 
   View, 
@@ -15,7 +15,8 @@ import { useRouter } from 'expo-router';
 import neo4j from 'neo4j-driver';
 import { logo_list } from '../../assets/logos/logosAssets';
 import createNeo4jDriver from '../utils/databaseSetUp';
-import { getDarkerShade } from '../utils/colorUtils'; 
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext"; 
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
@@ -26,11 +27,12 @@ const ParentalControlPanel: React.FC = () => {
     // Initial state setup with default values
     const [email, setEmail] = useState('parent@example.com');
     const [newEmail, setNewEmail] = useState('');
-    const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
-    const [enableChat, setEnableChat] = useState(true);
-    const [allowMediaSharing, setAllowMediaSharing] = useState(true);
+    const [allowAddViewFriends, setAllowAddViewFriends] = useState(false);
+    const [enableChat, setEnableChat] = useState(false);
+    const [allowMediaSharing, setAllowMediaSharing] = useState(false);
     const [timeLimit, setTimeLimit] = useState('2'); // Changed to string for TextInput
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
+    const { setSessionToken, sessionToken } = useContext(AuthContext);
 
     // Use Effect to load saved settings from Neo4j
     useEffect(() => {
@@ -38,22 +40,24 @@ const ParentalControlPanel: React.FC = () => {
             const session = driver.session();
             try {
                 const result = await session.run(
-                    `MATCH (u:User {parentEmail: $email})
+                    `MATCH (u:User {sessionToken: $sessionToken})
                      RETURN u.allowAddViewFriends AS allowAddViewFriends, 
                             u.enableChat AS enableChat, 
                             u.allowMediaSharing AS allowMediaSharing, 
                             u.timeLimit AS timeLimit, 
                             u.backgroundColor AS backgroundColor`,
-                    { email }
+                    { sessionToken }
                 );
 
                 if (result.records.length > 0) {
                     const record = result.records[0];
+                    const backgroundColor = record.get("backgroundColor");
+                    
                     setAllowAddViewFriends(record.get('allowAddViewFriends'));
                     setEnableChat(record.get('enableChat'));
                     setAllowMediaSharing(record.get('allowMediaSharing'));
                     setTimeLimit(record.get('timeLimit'));
-                    setBackgroundColor(record.get('backgroundColor'));
+                    setBackgroundColor(backgroundColor);
                 }
             } catch (error) {
                 console.error('Failed to load settings from Neo4j:', error);
@@ -63,7 +67,7 @@ const ParentalControlPanel: React.FC = () => {
         };
 
         loadSettings();
-    }, [email]);
+    }, [sessionToken]);
 
     // Change the email address
     const changeEmail = () => {
@@ -79,13 +83,13 @@ const ParentalControlPanel: React.FC = () => {
         const session = driver.session();
         try {
             await session.run(
-                `MERGE (u:User {parentEmail: $email})
+                `MERGE (u:User {sessionToken: $sessionToken})
                  SET u.allowAddViewFriends = $allowAddViewFriends, 
                      u.enableChat = $enableChat, 
                      u.allowMediaSharing = $allowMediaSharing, 
                      u.timeLimit = $timeLimit, 
                      u.backgroundColor = $backgroundColor`,
-                { email, allowAddViewFriends, enableChat, allowMediaSharing, timeLimit, backgroundColor }
+                { sessionToken, allowAddViewFriends, enableChat, allowMediaSharing, timeLimit, backgroundColor }
             );
 
             console.log('Parental controls saved');

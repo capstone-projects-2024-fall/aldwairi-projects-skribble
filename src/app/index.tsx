@@ -5,6 +5,7 @@ import uuid from 'react-native-uuid'; // Add this import
 import styles from "./indexStyles";
 import createNeo4jDriver from './utils/databaseSetUp';
 import { AuthContext } from "./AuthContext";
+import { avatar_list } from "@/assets/avatars/avatarAssets";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -38,6 +39,11 @@ export default function LogIn() {
       const age = new Date().getFullYear() - birthDate.getFullYear();
       const needsParentalControls = age < 13;
 
+      const enableChat = !needsParentalControls;
+      const allowAddViewFriends = !needsParentalControls;
+      const allowMediaSharing = !needsParentalControls;
+      const timeLimit = needsParentalControls ? 2 : null;
+
       if (needsParentalControls && !parentEmail) {
         setError("Parent's email is required for users under 13.");
         return;
@@ -47,6 +53,7 @@ export default function LogIn() {
         // Create a new user or ensure the user exists
         const sessionToken = uuid.v4(); 
         setSessionToken(sessionToken);
+        const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
         const result = await session.run(
           `MERGE (u:User {email: $email})
            ON CREATE SET
@@ -59,9 +66,14 @@ export default function LogIn() {
              u.birthday = $birthday,
              u.parentEmail = $parentEmail,
              u.needsParentalControls = $needsParentalControls,
-             u.sessionToken = $sessionToken
+             u.sessionToken = $sessionToken,
+             u.enableChat = $enableChat, 
+             u.allowMediaSharing = $allowMediaSharing, 
+             u.timeLimit = $timeLimit,
+             u.allowAddViewFriends = $allowAddViewFriends
+             u.avatarImage = $defaultAvatar
            RETURN u`,
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken }
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar }
         );
 
         if (result.summary.counters.containsUpdates()) {
@@ -80,7 +92,6 @@ export default function LogIn() {
     } else {
       try {
         // Validate existing user credentials (LOG-IN)
-
         const sessionToken = uuid.v4(); // Use this instead of the previous generateSessionToken()
         setSessionToken(sessionToken);
         const result = await session.run(

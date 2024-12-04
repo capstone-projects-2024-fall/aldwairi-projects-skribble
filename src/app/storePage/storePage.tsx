@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert } from 'react-native';
 import { category_list, clothes_list } from '../../assets/clothing/clothingAssets';
 import neo4j from 'neo4j-driver';
@@ -7,6 +7,7 @@ import { logo_list } from '../../assets/logos/logosAssets';
 import { useRouter } from 'expo-router';
 import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils'; 
+import { AuthContext } from '../AuthContext';
 
 const StorePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -14,6 +15,7 @@ const StorePage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [userCoins, setUserCoins] = useState<number>(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const { sessionToken, setSessionToken } = useContext(AuthContext);
   const router = useRouter();
 
   // Set up the Neo4j driver
@@ -25,9 +27,9 @@ const StorePage: React.FC = () => {
       const session = driver.session();
       try {
         const result = await session.run(
-          `MATCH (u:User {email: $email})
+          `MATCH (u:User {sessionToken: $sessionToken})
            RETURN u.coins AS coins, u.backgroundColor AS backgroundColor`,
-          { email: "<current_user_email>" } // Replace with the logged-in user's email
+          { sessionToken }
         );
 
         if (result.records.length > 0) {
@@ -47,7 +49,7 @@ const StorePage: React.FC = () => {
     };
 
     fetchUserCoins();
-  }, []);
+  }, [sessionToken]);
 
   const handleCategorySelect = (category_id: string) => {
     setSelectedCategory(category_id);
@@ -63,11 +65,11 @@ const StorePage: React.FC = () => {
       const session = driver.session();
       try {
         await session.run(
-          `MATCH (u:User {email: $email})
+          `MATCH (u:User {sessionToken: $sessionToken})
            SET u.coins = u.coins - $price
            CREATE (u)-[:OWNS]->(:Item {item_id: $item_id})
            RETURN u`,
-          { email: "<current_user_email>", price: selectedItem.price, item_id: selectedItem._id } // Replace with the logged-in user's email
+          { sessionToken, price: selectedItem.price, item_id: selectedItem._id } // Use the sessionToken from AuthContext
         );
 
         setUserCoins(userCoins - selectedItem.price);

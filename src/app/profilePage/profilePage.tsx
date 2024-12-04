@@ -18,11 +18,12 @@ import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
 const ProfilePage: React.FC = () => {
-  const [userName, setUserName] = useState("Loading...");
+  const [userName, setUserName] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const { setSessionToken, sessionToken } = useContext(AuthContext);
   const [userInfo, setUserInfo] = useState({
+    name: "",
     email: "",
     coins: 0,
     streak: 0,
@@ -63,6 +64,7 @@ const ProfilePage: React.FC = () => {
           console.log("User properties:", { email, coins, streak, exp, name, backgroundColor, avatarImage }); // Debugging
 
           setUserInfo({
+            name,
             email,
             coins,
             streak,
@@ -106,6 +108,40 @@ const ProfilePage: React.FC = () => {
     } catch (error) {
       console.error("Failed to update avatar", error);
       Alert.alert("Error", "Could not update avatar.");
+    } finally {
+      await session.close();
+    }
+  };
+
+  // Update User Name
+  const updateUserName = async () => {
+    if (!userName.trim()) {
+      Alert.alert("Error", "Name cannot be empty.");
+      return;
+    }
+
+    const session = driver.session();
+    try {
+      const result = await session.run(
+        `
+        MATCH (u:User {sessionToken: $sessionToken})
+        SET u.name = $newName
+        RETURN u.name AS updatedName
+        `,
+        { sessionToken, newName: userName }
+      );
+
+      if (result.records.length > 0) {
+        const updatedName = result.records[0].get("updatedName");
+        setUserInfo({ ...userInfo, name: updatedName });
+        setUserName(""); // Clear input
+        Alert.alert("Success", "Name updated successfully.");
+      } else {
+        Alert.alert("Error", "Failed to update name. User not found.");
+      }
+    } catch (error) {
+      console.error("Failed to update name", error);
+      Alert.alert("Error", "Could not update name. Please try again.");
     } finally {
       await session.close();
     }
@@ -214,7 +250,7 @@ const ProfilePage: React.FC = () => {
         <View style={styles.userInfo}>
           <Text style={styles.infoText}>
             <Text style={styles.bold}>Name: </Text>
-            {userName}
+            {userInfo.name}
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.bold}>Email: </Text>
@@ -235,7 +271,24 @@ const ProfilePage: React.FC = () => {
         </View>
 
         <View style={styles.centeredSection}>
-          <Text style={styles.label}>Update Email:</Text>
+          <Text style={styles.label}>Update Name:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter new name"
+            keyboardType="default"
+            value={userName}
+            onChangeText={setUserName}
+          />
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor)}]}
+            onPress={updateUserName}
+          >
+            <Text style={styles.buttonText}>Update Name</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.centeredSection}>
+          <Text style={{ ...styles.label, marginTop: 20 }}>Update Email:</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter new email"
@@ -253,10 +306,10 @@ const ProfilePage: React.FC = () => {
 
         {/* Update Background Color Section */}
         <View style={styles.section}>
-          <Text style={styles.label}>Background Color:</Text>
+          <Text style={{ ...styles.label, marginTop: 20 }}>Background Color:</Text>
           <View style={styles.colorButtons}>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: "#99CA9C" }]}
+              style={[styles.colorButton, { backgroundColor: "#99CA9C"}]}
               onPress={() => updateBackgroundColor("#99CA9C")}
             >
               <Text style={styles.buttonText}>Green</Text>

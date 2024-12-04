@@ -12,8 +12,8 @@ const HomePage: React.FC = () => {
   const router = useRouter();
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
-  const [allowAddViewFriends, setAllowAddViewFriends] = useState(false);
-  const [enableChat, setEnableChat] = useState(false);
+  const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
+  const [enableChat, setEnableChat] = useState(true);
   const parentEmail = 'parent@example.com'; // Replace with the actual parent email
   const { sessionToken } = useContext(AuthContext);
   const screenWidth = Dimensions.get('window').width;
@@ -28,7 +28,11 @@ const HomePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})
-           RETURN u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
+           RETURN 
+            u.backgroundColor AS backgroundColor, 
+            u.avatarImage AS avatarImage, 
+            u.enableChat AS enableChat,
+            u.allowAddViewFriends = $allowAddViewFriends`,
           { sessionToken }
         );
         if (result.records.length > 0) {
@@ -42,6 +46,8 @@ const HomePage: React.FC = () => {
 
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+          setAllowAddViewFriends(record.get('allowAddViewFriends'));
+          setEnableChat(record.get('enableChat'));
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -57,7 +63,7 @@ const HomePage: React.FC = () => {
       const session = driver.session();
       try {
         const result = await session.run(
-          `MATCH (u:User {parentEmail: $parentEmail})
+          `MATCH (u:User {sessionToken: $sessionToken}})
            RETURN u.allowAddViewFriends AS allowAddViewFriends,
                   u.enableChat AS enableChat,`,
           { parentEmail }

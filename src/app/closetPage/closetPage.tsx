@@ -28,7 +28,7 @@ const ClosetPage: React.FC = () => {
         const result = await session.run(
           `MATCH (u:User {email: $email})-[:OWNS]->(i:Item)
            RETURN u.selectedAvatar AS selectedAvatar, u.backgroundColor AS backgroundColor, collect(i.item_id) AS ownedItems`,
-          { email: "<current_user_email>" } // Replace with the logged-in user's email
+          { email: "<current_user_email>" } 
         );
 
         if (result.records.length > 0) {
