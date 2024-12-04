@@ -53,6 +53,7 @@ export default function LogIn() {
       try {
         // Create a new user or ensure the user exists
         const sessionToken = uuid.v4(); 
+        const friendCode = uuid.v4();
         setSessionToken(sessionToken);
         const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
         const result = await session.run(
@@ -72,9 +73,10 @@ export default function LogIn() {
              u.allowMediaSharing = $allowMediaSharing, 
              u.timeLimit = $timeLimit,
              u.allowAddViewFriends = $allowAddViewFriends
-             u.avatarImage = $defaultAvatar
+             u.avatarImage = $defaultAvatar,
+             u.friendCode = $friendCode
            RETURN u`,
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar }
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar, friendCode }
         );
 
         if (result.summary.counters.containsUpdates()) {

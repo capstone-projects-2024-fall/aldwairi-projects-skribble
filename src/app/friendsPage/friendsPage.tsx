@@ -1,95 +1,159 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, TextInput, FlatList, SafeAreaView, Modal, Alert, Dimensions, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
+import { avatar_list } from '../../assets/avatars/avatarAssets';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext";
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState('friends');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFriend, setSelectedFriend] = useState(null);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [friendRequestModal, setFriendRequestModal] = useState(false);
-  const [friendRequestUsername, setFriendRequestUsername] = useState('');
-  const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
+  const [friendRequestCode, setFriendRequestCode] = useState('');
   const [headerColor, setHeaderColor] = useState('#3B82F6');
+  const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const [friendCode, setFriendCode] = useState('');
+  const { sessionToken } = useContext(AuthContext);
+  
+  // Set up the Neo4j driver
+  const driver = createNeo4jDriver();
 
-  const [friendsList, setFriendsList] = useState([
-    { id: 1, name: 'JellyBean', avatar: require('../../assets/images/dog/dog5.png') },
-    { id: 2, name: 'CookieMonster', avatar: require('../../assets/images/bear/bear3.png') },
-    { id: 3, name: 'CloudChaser', avatar: require('../../assets/images/tiger/tiger4.png') },
-    { id: 4, name: 'FrostyPenguin', avatar: require('../../assets/images/penguin/penguin2.png') },
-    { id: 5, name: 'TurboPanda', avatar: require('../../assets/images/panda/panda4.png') }
-  ]);
+  interface Friend {
+    id: number;
+    name: string;
+    avatar: any;
+    friendCode: string;
+  }
+  interface FriendRequest {
+    id: number;
+    name: string;
+    avatar: any;
+    friendCode: string;
+  }
 
-  const [friendRequests, setFriendRequests] = useState([
-    { id: 4, name: 'NightPhantom', avatar: require('../../assets/images/panda/panda1.png') },
-    { id: 5, name: 'DarkVortex', avatar: require('../../assets/images/bear/bear2.png') }
-  ]);
+  const [friendsList, setFriendsList] = useState<FriendRequest[]>([]);
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
 
   const router = useRouter();
 
-  // Function to get header color
-  const getHeaderColor = (bgColor) => {
-    switch (bgColor) {
-      case '#99CA9C':
-        return '#2F855A';
-      case '#9FDDF9':
-        return '#2C5282';
-      case '#FAC1BE':
-        return '#B83280';
-      default:
-        return '#3B82F6';
-    }
-  };
-
-  // Load background color
+  // Load user data
   useEffect(() => {
-    const loadBackgroundColor = async () => {
+    const loadUserData = async () => {
+      const session = driver.session();
       try {
-        const savedColor = await AsyncStorage.getItem('backgroundColor');
-        if (savedColor) {
-          setBackgroundColor(savedColor);
-          setHeaderColor(getHeaderColor(savedColor));
+        const result = await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken})
+           RETURN 
+            u.backgroundColor AS backgroundColor,
+            u.avatarImage AS avatarImage,
+            u.friendCode AS friendCode`,
+          { sessionToken }
+        );
+        if (result.records.length > 0) {
+          const record = result.records[0];
+          const backgroundColor = record.get("backgroundColor");
+          const avatarImage = record.get("avatarImage");
+          const friendCode = record.get("friendCode");
+
+          console.log("User properties:", { backgroundColor, avatarImage, friendCode }); // Debugging
+
+          setBackgroundColor(backgroundColor || "#FFFFFF");
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+          setFriendCode(friendCode);
+        } else {
+          Alert.alert("Error", "User not found.");
         }
       } catch (error) {
-        console.error('Failed to load background color', error);
+        console.error("Failed to load user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
+      } finally {
+        await session.close();
       }
     };
-    loadBackgroundColor();
-  }, []);
 
-  const sendFriendRequest = () => {
-    if (!friendRequestUsername) {
-      Alert.alert('Error', 'Please enter a username');
+    loadUserData();
+  }, [sessionToken]);
+
+  // Update header color based on background color
+  useEffect(() => {
+    setHeaderColor(getDarkerShade(backgroundColor));
+  }, [backgroundColor]);
+
+  // get friend information
+  const sendFriendRequest = async () => {
+    if (!friendRequestCode) {
+      Alert.alert('Error', 'Please enter a friend code');
       return;
     }
 
-    const newRequest = {
-      id: friendRequests.length + 1,
-      name: friendRequestUsername,
-      avatar: require('../../assets/images/bear/bear5.png')
-    };
+    const session = driver.session();
+    try {
+      const result = await session.run(
+        `MATCH (u:User {friendCode: $friendRequestCode})
+         RETURN u.name AS name, u.avatarImage AS avatarImage`,
+        { friendRequestCode }
+      );
 
-    setFriendRequests([...friendRequests, newRequest]);
-    setFriendRequestUsername('');
-    setFriendRequestModal(false);
-    Alert.alert('Success', `Friend request sent to ${friendRequestUsername}`);
+      if (result.records.length > 0) {
+        const record = result.records[0];
+        const friendName = record.get("name");
+        const friendAvatar = record.get("avatarImage");
+
+        const newRequest = {
+          id: friendRequests.length + 1,
+          name: friendName,
+          avatar: friendAvatar,
+          friendCode: friendRequestCode
+        };
+
+        setFriendRequests([...friendRequests, newRequest]);
+        setFriendRequestCode('');
+        setFriendRequestModal(false);
+        Alert.alert('Success', `Friend request sent to ${friendName}`);
+      } else {
+        Alert.alert('Error', 'Friend not found');
+      }
+    } catch (error) {
+      console.error("Failed to send friend request", error);
+      Alert.alert("Error", "Could not send friend request. Please try again.");
+    } finally {
+      await session.close();
+    }
   };
 
-  const acceptFriendRequest = (request) => {
-    const updatedRequests = friendRequests.filter(r => r.id !== request.id);
-    const updatedFriendsList = [...friendsList, request];
-    setFriendRequests(updatedRequests);
-    setFriendsList(updatedFriendsList);
-    Alert.alert('Success', `${request.name} is now your friend!`);
+  const acceptFriendRequest = async (request: FriendRequest) => {
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $sessionToken}), (f:User {friendCode: $friendCode})
+         MERGE (u)-[:FRIENDS_WITH]->(f)`,
+        { sessionToken, friendCode: request.friendCode }
+      );
+
+      const updatedRequests = friendRequests.filter(r => r.id !== request.id);
+      const updatedFriendsList = [...friendsList, request];
+      setFriendRequests(updatedRequests);
+      setFriendsList(updatedFriendsList);
+      Alert.alert('Success', `${request.name} is now your friend!`);
+    } catch (error) {
+      console.error("Failed to accept friend request", error);
+      Alert.alert("Error", "Could not accept friend request. Please try again.");
+    } finally {
+      await session.close();
+    }
   };
 
-  const rejectFriendRequest = (request) => {
+  const rejectFriendRequest = (request: FriendRequest) => {
     const updatedRequests = friendRequests.filter(r => r.id !== request.id);
     setFriendRequests(updatedRequests);
     Alert.alert('Notification', `Friend request from ${request.name} has been rejected`);
   };
 
-  const renderFriendGridItem = ({ item }) => {
+  const renderFriendGridItem = ({ item }: { item: Friend }) => {
     const screenWidth = Dimensions.get('window').width;
 
     // Different sizing for web and mobile
@@ -143,7 +207,7 @@ const FriendsPage = () => {
     );
   };
 
-  const renderFriendRequests = ({ item }) => {
+  const renderFriendRequests = ({ item }: { item: FriendRequest }) => {
     const screenWidth = Dimensions.get('window').width;
 
     // Responsive sizing for request items
@@ -219,7 +283,7 @@ const FriendsPage = () => {
     );
   };
 
-  const removeFriend = (friend) => {
+  const removeFriend = (friend: Friend) => {
     if (Platform.OS === 'web') {
       // Use window.confirm for the web
       const confirmation = window.confirm(`Are you sure you want to remove ${friend.name}?`);
@@ -486,9 +550,9 @@ const FriendsPage = () => {
                 marginBottom: 15
               }}>Send Friend Request</Text>
               <TextInput
-                placeholder="Enter username"
-                value={friendRequestUsername}
-                onChangeText={setFriendRequestUsername}
+                placeholder="Enter friend code"
+                value={friendRequestCode}
+                onChangeText={setFriendRequestCode}
                 style={{
                   borderWidth: 1,
                   borderColor: '#ccc',

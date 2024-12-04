@@ -20,6 +20,7 @@ const HomePage: React.FC = () => {
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
+  // load user data
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session();
