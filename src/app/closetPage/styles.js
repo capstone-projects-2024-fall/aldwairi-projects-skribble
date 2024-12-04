@@ -36,10 +36,11 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: 'center',
-    fontSize: 30,
+    fontSize: 36,
     fontWeight: 'bold',
     marginVertical: 10,
     marginBottom: 20,
+    marginTop: -30,
   },
   mainContent: {
     flexDirection: 'row',
@@ -114,6 +115,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  wornItem: {
+    position: 'absolute',
+    top: 0,
+    width: 375,
+    height: 375,
   },
 });
 

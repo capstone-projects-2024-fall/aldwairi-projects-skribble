@@ -73,16 +73,16 @@ export default function LogIn() {
              u.streak = 0,
              u.coins = 100,
              u.exp = 0,
-             u.backgroundColor = '#FFFFFF',
+             u.backgroundColor = '#99CA9C',
              u.birthday = $birthday,
              u.parentEmail = $parentEmail,
              u.needsParentalControls = $needsParentalControls,
              u.sessionToken = $sessionToken,
              u.enableChat = $enableChat, 
              u.allowMediaSharing = $allowMediaSharing, 
-             u.timeLimit = $timeLimit,
+             u.timeLimit = 2,
              u.allowAddViewFriends = $allowAddViewFriends,
-             u.avatarImage = $defaultAvatar,
+             u.avatarImage = '1',
              u.friendCode = $friendCode
            WITH u
            MERGE (p:pet {petID: $petID})

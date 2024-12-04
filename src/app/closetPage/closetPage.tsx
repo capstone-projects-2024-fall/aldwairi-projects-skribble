@@ -15,6 +15,7 @@ const ClosetPage: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [ownedItems, setOwnedItems] = useState<string[]>([]);
+  const [wornItems, setWornItems] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { sessionToken } = useContext(AuthContext);
   const router = useRouter();
@@ -29,22 +30,25 @@ const ClosetPage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})-[:OWNS]->(i:Item)
+           OPTIONAL MATCH (u)-[:WEARS]->(w:Item)
            RETURN u.avatarImage AS avatarImage, 
                   u.backgroundColor AS backgroundColor, 
-                  collect(i.item_id) AS ownedItems`,
+                  collect(i.item_id) AS ownedItems,
+                  collect(w.item_id) AS wornItems`,
           { sessionToken } 
         );
 
         if (result.records.length > 0) {
-          // Directly accessing the fields in the result
           const record = result.records[0];
           const avatarImage = record.get("avatarImage");
           const backgroundColor = record.get("backgroundColor");
           const ownedItems = record.get("ownedItems");
-          
+          const wornItems = record.get("wornItems");
+
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
           setBackgroundColor(backgroundColor);
           setOwnedItems(ownedItems);
+          setWornItems(wornItems);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -63,14 +67,51 @@ const ClosetPage: React.FC = () => {
     setSelectedCategory(category_id);
   };
 
-  const handleItemSelect = (item: any) => {
-    setSelectedItem(item);
-    setModalVisible(true);
+  const handleItemSelect = async (item: any) => {
+    const session = driver.session();
+    try {
+      if (wornItems.includes(item._id)) {
+        // Remove the item if it is already worn
+        await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken})-[r:WEARS]->(i:Item {item_id: $item_id})
+           DELETE r`,
+          { sessionToken, item_id: item._id }
+        );
+
+        setWornItems(prevWornItems => prevWornItems.filter(wornItem => wornItem !== item._id));
+      } else {
+        // Wear the item if it is not already worn
+        await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken})
+           OPTIONAL MATCH (u)-[r:WEARS]->(w:Item {category: $category})
+           DELETE r
+           CREATE (u)-[:WEARS]->(i:Item {item_id: $item_id})
+           RETURN i`,
+          { sessionToken, category: item.category, item_id: item._id }
+        );
+
+        setWornItems(prevWornItems => {
+          const updatedWornItems = prevWornItems.filter(wornItem => wornItem !== item._id);
+          updatedWornItems.push(item._id);
+          return updatedWornItems;
+        });
+      }
+
+      setSelectedItem(item);
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Failed to wear/remove item", error);
+      Alert.alert("Error", "Could not wear/remove item. Please try again.");
+    } finally {
+      await session.close();
+    }
   };
 
   const filteredItems = selectedCategory
     ? clothes_list.filter(item => item.category === selectedCategory && ownedItems.includes(item._id))
-    : clothes_list.filter(item => ownedItems.includes(item._id));
+    : clothes_list.filter(item => item.category === 'bottoms' && ownedItems.includes(item._id));
+
+  const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
@@ -107,6 +148,14 @@ const ClosetPage: React.FC = () => {
             style={styles.avatar}
             resizeMode="contain"
           />
+          {wornItemsDetails.map(item => (
+            <Image
+              key={item._id}
+              source={item.image}
+              style={styles.wornItem}
+              resizeMode="contain"
+            />
+          ))}
         </View>
 
         <View style={styles.rightContainer}>

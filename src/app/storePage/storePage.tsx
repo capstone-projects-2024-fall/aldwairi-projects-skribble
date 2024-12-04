@@ -70,7 +70,7 @@ const StorePage: React.FC = () => {
            SET u.coins = u.coins - $price
            CREATE (u)-[:OWNS]->(:Item {item_id: $item_id})
            RETURN u`,
-          { sessionToken, price: selectedItem.price, item_id: selectedItem._id } // Use the sessionToken from AuthContext
+          { sessionToken, price: selectedItem.price, item_id: selectedItem._id } 
         );
 
         setUserCoins(userCoins - selectedItem.price);
