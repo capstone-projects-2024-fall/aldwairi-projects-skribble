@@ -4,8 +4,8 @@ const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
 // Define a scaling factor for small screens
-const isSmallScreen = windowWidth < 360; // Adjust this value based on your threshold
-const scaleFactor = isSmallScreen ? 0.5 : 1; // 70% for small screens, full size otherwise
+const isSmallScreen = windowWidth < 375;
+const scaleFactor = isSmallScreen ? 0.5 : 1; 
 
 const styles = StyleSheet.create({
   container: {
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     marginBottom: 20 * scaleFactor,
   },
   headerButton: {
-    padding: 30 * scaleFactor,
+    padding: 15 * scaleFactor,
     borderRadius: 60 * scaleFactor,
     marginLeft: 50 * scaleFactor,
     marginRight: 50 * scaleFactor,
