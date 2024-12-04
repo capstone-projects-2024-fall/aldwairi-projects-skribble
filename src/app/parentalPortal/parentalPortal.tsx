@@ -9,7 +9,8 @@ import {
   Switch,
   ScrollView,
   Platform,
-  Image
+  Image,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import neo4j from 'neo4j-driver';
@@ -25,7 +26,6 @@ const ParentalControlPanel: React.FC = () => {
     const driver = createNeo4jDriver();
 
     // Initial state setup with default values
-    const [email, setEmail] = useState('parent@example.com');
     const [newEmail, setNewEmail] = useState('');
     const [allowAddViewFriends, setAllowAddViewFriends] = useState(false);
     const [enableChat, setEnableChat] = useState(false);
@@ -33,6 +33,9 @@ const ParentalControlPanel: React.FC = () => {
     const [timeLimit, setTimeLimit] = useState('2'); // Changed to string for TextInput
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
     const { setSessionToken, sessionToken } = useContext(AuthContext);
+    const [parentInfo, setParentInfo] = useState({
+        email: ""
+      });
 
     // Use Effect to load saved settings from Neo4j
     useEffect(() => {
@@ -41,7 +44,8 @@ const ParentalControlPanel: React.FC = () => {
             try {
                 const result = await session.run(
                     `MATCH (u:User {sessionToken: $sessionToken})
-                     RETURN u.allowAddViewFriends AS allowAddViewFriends, 
+                     RETURN u.parentEmail AS parentEmail,
+                            u.allowAddViewFriends AS allowAddViewFriends, 
                             u.enableChat AS enableChat, 
                             u.allowMediaSharing AS allowMediaSharing, 
                             u.timeLimit AS timeLimit, 
@@ -49,15 +53,19 @@ const ParentalControlPanel: React.FC = () => {
                     { sessionToken }
                 );
 
-                if (result.records.length > 0) {
+                if (result.records.length > 0) {;
                     const record = result.records[0];
                     const backgroundColor = record.get("backgroundColor");
-                    
+                    const parentEmail = record.get('parentEmail');
+                    setNewEmail(parentEmail);
                     setAllowAddViewFriends(record.get('allowAddViewFriends'));
                     setEnableChat(record.get('enableChat'));
                     setAllowMediaSharing(record.get('allowMediaSharing'));
                     setTimeLimit(record.get('timeLimit'));
                     setBackgroundColor(backgroundColor);
+                    setParentInfo({
+                        email: parentEmail
+                    })
                 }
             } catch (error) {
                 console.error('Failed to load settings from Neo4j:', error);
@@ -70,11 +78,36 @@ const ParentalControlPanel: React.FC = () => {
     }, [sessionToken]);
 
     // Change the email address
-    const changeEmail = () => {
-        if (newEmail) {
-            setEmail(newEmail);
-            setNewEmail('');
-            console.log(`Email changed to: ${newEmail}`);
+    const changeEmail = async () => {
+        if (!newEmail.trim()) {
+            Alert.alert("Error", "Email cannot be empty.");
+            return;
+        }
+
+        const session = driver.session();
+        try {
+            const result = await session.run(
+                `
+                MATCH (u:User {sessionToken: $sessionToken})
+                SET u.parentEmail = $newEmail
+                RETURN u.parentEmail AS updatedEmail
+                `,
+                { sessionToken, newEmail }
+            );
+
+            if (result.records.length > 0) {
+                const updatedEmail = result.records[0].get("updatedEmail");
+                setParentInfo({ email: updatedEmail });
+                setNewEmail(""); // Clear input
+                Alert.alert("Success", "Email updated successfully.");
+            } else {
+                Alert.alert("Error", "Failed to update email. User not found.");
+            }
+        } catch (error) {
+            console.error("Failed to update email", error);
+            Alert.alert("Error", "Could not update email. Please try again.");
+        } finally {
+            await session.close();
         }
     };
 
@@ -83,7 +116,7 @@ const ParentalControlPanel: React.FC = () => {
         const session = driver.session();
         try {
             await session.run(
-                `MERGE (u:User {sessionToken: $sessionToken})
+                `MATCH (u:User {sessionToken: $sessionToken})
                  SET u.allowAddViewFriends = $allowAddViewFriends, 
                      u.enableChat = $enableChat, 
                      u.allowMediaSharing = $allowMediaSharing, 
@@ -123,7 +156,7 @@ const ParentalControlPanel: React.FC = () => {
             <View style={styles.section}>
                 <Text style={styles.currentEmail}>
                     <Text style={styles.bold}>Current Email: </Text>
-                    {email}
+                    {parentInfo.email}
                 </Text>
                 <Text style={styles.label}>Change Email:</Text>
                 <TextInput

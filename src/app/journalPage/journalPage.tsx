@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import { useRouter } from "expo-router";
 import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
 interface JournalEntry {
@@ -270,17 +271,17 @@ interface JournalEntry {
         placeholderTextColor="#666"
       />
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.outlinedButton} onPress={saveEntry}>
+        <TouchableOpacity style={[styles.outlinedButton, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={saveEntry}>
           <Text style={styles.buttonText}>Save Entry</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.outlinedButton, styles.promptSelectButton]}
+          style={[styles.outlinedButton, styles.promptSelectButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
           onPress={() => setIsModalOpen(true)}
         >
           <Text style={styles.buttonText}>Select Prompt</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.outlinedButton, styles.cancelButton]}
+          style={[styles.outlinedButton, styles.cancelButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
           onPress={cancelNewEntryForm}
         >
           <Text style={styles.buttonText}>Cancel</Text>
@@ -306,7 +307,7 @@ interface JournalEntry {
       </Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.deleteButton]}
+          style={[styles.deleteButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
           onPress={() => showDeleteConfirmation(entries.indexOf(currentEntry!))}
         >
           <Text style={styles.buttonText}>Delete Entry</Text>
@@ -372,13 +373,13 @@ interface JournalEntry {
       </View>
 
       {!isFormVisible && !currentEntry && (
-        <TouchableOpacity style={styles.newEntryButton} onPress={showNewEntryForm}>
+        <TouchableOpacity style={[styles.newEntryButton, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={showNewEntryForm}>
           <Text style={styles.newEntryButtonText}>New Entry</Text>
         </TouchableOpacity>
       )}
 
       {/* Home Button */}
-      <TouchableOpacity style={[styles.homeButton]} onPress={navigateToHomePage}>
+      <TouchableOpacity style={[styles.homeButton, { backgroundColor: getDarkerShade(backgroundColor), marginTop: 20 }]} onPress={navigateToHomePage}>
                 <Text style={styles.buttonText}>Home</Text>
         </TouchableOpacity>
 
@@ -393,11 +394,11 @@ interface JournalEntry {
         onRequestClose={() => setIsModalOpen(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text>Choose a Writing Prompt</Text>
+          <View style={[styles.modalContent, { borderWidth: 4, borderRadius: 15 }]}>
+            <View style={{ ...styles.modalHeader, backgroundColor: getDarkerShade(backgroundColor) }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Choose a Writing Prompt</Text>
               <TouchableOpacity onPress={() => setIsModalOpen(false)}>
-                <Text style={styles.modalCloseButton}>×</Text>
+                <Text style={[styles.modalCloseButton, { fontSize: 24 }]}>×</Text>
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>
@@ -413,7 +414,7 @@ interface JournalEntry {
                 ].map((prompt, index) => (
                   <TouchableOpacity
                     key={index}
-                    style={styles.promptButton}
+                    style={[styles.promptButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={() => {
                       setSelectedPrompt(prompt);
                       setIsModalOpen(false);
@@ -436,7 +437,7 @@ interface JournalEntry {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.deleteConfirmationModal}>
-            <View style={styles.deleteModalHeader}>
+            <View style={{ ...styles.deleteModalHeader, backgroundColor: getDarkerShade(backgroundColor) }}>
               <Text style={styles.deleteModalTitle}>Delete Entry</Text>
             </View>
             <View style={styles.deleteModalBody}>
@@ -445,13 +446,13 @@ interface JournalEntry {
               </Text>
               <View style={styles.deleteModalButtons}>
                 <TouchableOpacity
-                  style={[styles.outlinedButton, styles.cancelModalButton]}
+                  style={[styles.outlinedButton, styles.cancelModalButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                   onPress={hideDeleteConfirmation}
                 >
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.outlinedButton]}
+                  style={[styles.outlinedButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                   onPress={handleDeleteEntry}
                 >
                   <Text style={styles.buttonText}>Delete</Text>

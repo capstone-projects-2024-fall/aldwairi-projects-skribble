@@ -43,7 +43,13 @@ const ProfilePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})
-           RETURN u.email AS email, u.coins AS coins, u.streak AS streak, u.exp AS exp, u.name AS name, u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
+           RETURN u.email AS email, 
+                  u.coins AS coins, 
+                  u.streak AS streak, 
+                  u.exp AS exp, 
+                  u.name AS name, 
+                  u.backgroundColor AS backgroundColor, 
+                  u.avatarImage AS avatarImage`,
           { sessionToken }
         );
 
