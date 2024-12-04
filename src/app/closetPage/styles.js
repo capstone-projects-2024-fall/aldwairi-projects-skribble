@@ -48,18 +48,19 @@ const styles = StyleSheet.create({
   avatarContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start', 
+    justifyContent: 'center',
+    position: 'relative', 
   },
   avatar: {
-    width: 350,
-    height: 350,
-    marginBottom: 0, 
-    zIndex: 1,
+    position: 'absolute',
+    top: 0, 
+    width: 375,
+    height: 375,
   },
   podium: {
     width: 350,
     height: 350,
-    marginTop: -200, 
+    marginTop: 220, 
     zIndex: 0,
   },
   rightContainer: {

@@ -13,7 +13,7 @@ const ClosetPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [ownedItems, setOwnedItems] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { sessionToken } = useContext(AuthContext);
@@ -29,17 +29,20 @@ const ClosetPage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})-[:OWNS]->(i:Item)
-           RETURN u.selectedAvatar AS selectedAvatar, 
+           RETURN u.avatarImage AS avatarImage, 
                   u.backgroundColor AS backgroundColor, 
                   collect(i.item_id) AS ownedItems`,
-          { sessionToken} 
+          { sessionToken } 
         );
 
         if (result.records.length > 0) {
-          const selectedAvatar = result.records[0].get("selectedAvatar");
-          const backgroundColor = result.records[0].get("backgroundColor");
-          const ownedItems = result.records[0].get("ownedItems");
-          setSelectedAvatar(selectedAvatar);
+          // Directly accessing the fields in the result
+          const record = result.records[0];
+          const avatarImage = record.get("avatarImage");
+          const backgroundColor = record.get("backgroundColor");
+          const ownedItems = record.get("ownedItems");
+          
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
           setBackgroundColor(backgroundColor);
           setOwnedItems(ownedItems);
         } else {
@@ -54,7 +57,7 @@ const ClosetPage: React.FC = () => {
     };
 
     fetchUserData();
-  }, [ sessionToken]);
+  }, [sessionToken]);
 
   const handleCategorySelect = (category_id: string) => {
     setSelectedCategory(category_id);
@@ -69,10 +72,8 @@ const ClosetPage: React.FC = () => {
     ? clothes_list.filter(item => item.category === selectedCategory && ownedItems.includes(item._id))
     : clothes_list.filter(item => ownedItems.includes(item._id));
 
-  const selectedAvatarImage = avatar_list.find(avatar => avatar.avatar_id === selectedAvatar)?.avatar_image;
-
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor }]}>
       {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={() => router.push('/homePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
@@ -96,16 +97,14 @@ const ClosetPage: React.FC = () => {
       <View style={styles.mainContent}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          {selectedAvatarImage && (
-            <Image
-              source={selectedAvatarImage}
-              style={styles.avatar}
-              resizeMode="contain"
-            />
-          )}
           <Image
             source={require('../../assets/images/podium.png')}
             style={styles.podium}
+            resizeMode="contain"
+          />
+          <Image
+            source={avatar_list.find(avatar => avatar.avatar_id === avatarImage)?.avatar_image}
+            style={styles.avatar}
             resizeMode="contain"
           />
         </View>
