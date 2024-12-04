@@ -14,7 +14,6 @@ const HomePage: React.FC = () => {
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
   const [enableChat, setEnableChat] = useState(true);
-  const parentEmail = 'parent@example.com'; // Replace with the actual parent email
   const { sessionToken } = useContext(AuthContext);
   const screenWidth = Dimensions.get('window').width;
 
@@ -22,7 +21,6 @@ const HomePage: React.FC = () => {
   const driver = createNeo4jDriver();
 
   useEffect(() => {
-
     const loadUserData = async () => {
       const session = driver.session();
       try {
@@ -32,7 +30,7 @@ const HomePage: React.FC = () => {
             u.backgroundColor AS backgroundColor, 
             u.avatarImage AS avatarImage, 
             u.enableChat AS enableChat,
-            u.allowAddViewFriends = $allowAddViewFriends`,
+            u.allowAddViewFriends AS allowAddViewFriends`,
           { sessionToken }
         );
         if (result.records.length > 0) {
@@ -41,13 +39,15 @@ const HomePage: React.FC = () => {
           // Extract values from the result, handling the INTEGER type if necessary
           const backgroundColor = record.get("backgroundColor");
           const avatarImage = record.get("avatarImage");
+          const enableChat = record.get("enableChat");
+          const allowAddViewFriends = record.get("allowAddViewFriends");
 
-          console.log("User properties:", { backgroundColor, avatarImage }); // Debugging
+          console.log("User properties:", { backgroundColor, avatarImage, enableChat, allowAddViewFriends }); // Debugging
 
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
-          setAllowAddViewFriends(record.get('allowAddViewFriends'));
-          setEnableChat(record.get('enableChat'));
+          setAllowAddViewFriends(allowAddViewFriends);
+          setEnableChat(enableChat);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -59,31 +59,8 @@ const HomePage: React.FC = () => {
       }
     };
 
-    const loadSettings = async () => {
-      const session = driver.session();
-      try {
-        const result = await session.run(
-          `MATCH (u:User {sessionToken: $sessionToken}})
-           RETURN u.allowAddViewFriends AS allowAddViewFriends,
-                  u.enableChat AS enableChat,`,
-          { parentEmail }
-        );
-
-        if (result.records.length > 0) {
-          const record = result.records[0];
-          setAllowAddViewFriends(record.get('allowAddViewFriends'));
-          setEnableChat(record.get('enableChat'));
-        }
-      } catch (error) {
-        console.error('Failed to load settings from Neo4j:', error);
-      } finally {
-        await session.close();
-      }
-    };
-
     loadUserData();
-    loadSettings();
-  }, [parentEmail]);
+  }, [sessionToken]);
 
   const goToPage = (page: string) => {
     router.push(page);
@@ -106,7 +83,7 @@ const HomePage: React.FC = () => {
   const logoDimensions = getLogoDimensions();
 
   return (
-    <View style={[styles.homeContainer, { backgroundColor}]}>
+    <View style={[styles.homeContainer, { backgroundColor }]}>
       <View style={[
         styles.logoContainer,
         Platform.OS === 'web' ? styles.logoContainerWeb : styles.logoContainerMobile

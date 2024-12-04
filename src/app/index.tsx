@@ -9,6 +9,7 @@ import { avatar_list } from "@/assets/avatars/avatarAssets";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [password, setPassword] = useState("");
   const [birthday, setBirthday] = useState("");
   const [parentEmail, setParentEmail] = useState("");
