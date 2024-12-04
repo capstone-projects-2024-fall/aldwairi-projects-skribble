@@ -37,6 +37,12 @@ export default function LogIn() {
         return;
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError("Please enter a valid email address.");
+        return;
+      }
+
       // generate unique petID
       const generatedPetID = uuid.v4();
       setPetID(generatedPetID);
