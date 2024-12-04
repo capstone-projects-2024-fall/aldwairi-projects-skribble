@@ -43,6 +43,17 @@ const styles = StyleSheet.create({
       marginBottom: 20,
       marginTop: -50,
     },
+    coinsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    coinsLabel: {
+      color: "#666",
+      marginLeft: 3,
+      fontSize: 40,
+      fontWeight: 'bold',
+    },
     categoryContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',

@@ -123,6 +123,12 @@ const StorePage: React.FC = () => {
         ))}
       </View>
 
+      {/* Coins */}
+      <View style={styles.coinsContainer}>
+        <Image source={coinIcon} style={{ width: 40, height: 40}} />
+        <Text style={styles.coinsLabel}>{userCoins}</Text>
+      </View>
+
       {/* Clothing Items */}
       <View style={styles.itemsContainer}>
         {filteredItems.map(item => (
