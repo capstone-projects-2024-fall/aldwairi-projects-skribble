@@ -100,7 +100,7 @@ interface JournalEntry {
 
   const driver = createNeo4jDriver();
 
-  // Load journal entries from AsyncStorage on component mount
+  // Load journal entries
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session()
@@ -110,9 +110,7 @@ interface JournalEntry {
           { sessionToken }
         );
         if (result.records.length > 0) {
-          // Directly accessing the fields in the result
           const record = result.records[0];
-          // Extract values from the result, handling the INTEGER type if necessary
           const backgroundColor = record.get("backgroundColor");
           const avatarImage = record.get("avatarImage");
           setBackgroundColor(backgroundColor || "#FFFFFF");
@@ -127,39 +125,39 @@ interface JournalEntry {
         await session.close();
     }
   };
-    const loadEntries = async () => {
-      try {
-        const storedEntries = await AsyncStorage.getItem('journalEntries');
-        if (storedEntries) {
-          setEntries(JSON.parse(storedEntries));
-        }
 
-        const savedColor = await AsyncStorage.getItem('backgroundColor');
-        if (savedColor) {
-          setBackgroundColor(savedColor);
-        } else {
-          setBackgroundColor("#FFEBEE")
-        }
-      } catch (error) {
-        console.error('Error loading entries:', error);
-      }
-    };
+  const loadEntries = async () => {
+    const session = driver.session();
+    try {
+      const result = await session.run(
+        `
+        MATCH (u:User {sessionToken: $sessionToken})-[:HAS_ENTRY]->(j:Journal)
+        RETURN j.entryID AS entryID, j.date AS date, j.title AS title, j.content AS content, j.imageIndex AS imageIndex
+        ORDER BY j.date DESC
+        `,
+        { sessionToken }
+      );
+
+      const fetchedEntries = result.records.map((record) => ({
+        title: record.get('title'),
+        content: record.get('content'),
+        date: record.get('date'),
+        imageIndex: record.get('imageIndex'),
+      }));
+
+      setEntries(fetchedEntries);
+    } catch (error) {
+      console.error('Failed to load journal entries from Neo4j:', error);
+      Alert.alert('Error', 'Could not load journal entries.');
+    } finally {
+      await session.close();
+    }
+  };
+
     loadEntries();
     loadUserData();
     console.log("User properties:", { backgroundColor, avatarImage });
   }, [sessionToken]);
-
-  // Save journal entries to AsyncStorage whenever they change
-  useEffect(() => {
-    const saveEntries = async () => {
-      try {
-        await AsyncStorage.setItem('journalEntries', JSON.stringify(entries));
-      } catch (error) {
-        console.error('Error saving entries:', error);
-      }
-    };
-    saveEntries();
-  }, [entries]);
 
   const navigateToHomePage = () => {
     router.push('/homePage');
@@ -202,7 +200,7 @@ interface JournalEntry {
     setSelectedPrompt(null);
   };
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (!currentEntry?.title || !currentEntry?.content) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -215,11 +213,40 @@ interface JournalEntry {
       imageIndex: getRandomImageIndex(),
     };
 
-    setEntries([newEntry, ...entries]);
-    setIsFormVisible(false);
-    setSelectedPrompt(null);
-    setCurrentEntry(null);
-    showRewardGif();
+    const session = driver.session();
+    try {
+      await session.run(
+        `
+        MATCH (u:User {sessionToken: $sessionToken})
+        CREATE (j:Journal {
+          entryID: randomUUID(),
+          date: $date,
+          title: $title,
+          content: $content,
+          imageIndex: $imageIndex
+        })
+        MERGE (u)-[:HAS_ENTRY]->(j)
+        `,
+        {
+          sessionToken,
+          date: newEntry.date,
+          title: newEntry.title,
+          content: newEntry.content,
+          imageIndex: newEntry.imageIndex,
+        }
+      );
+
+      setEntries([newEntry, ...entries]);
+      setIsFormVisible(false);
+      setSelectedPrompt(null);
+      setCurrentEntry(null);
+      showRewardGif();
+    } catch (error) {
+      console.error('Failed to save journal entry to Neo4j:', error);
+      Alert.alert('Error', 'Could not save journal entry.');
+    } finally {
+      await session.close();
+    }
   };
 
   const handleViewEntry = (index: number) => {
@@ -241,15 +268,38 @@ interface JournalEntry {
     setCurrentDeleteIndex(null);
   };
 
-  const handleDeleteEntry = () => {
+  const handleDeleteEntry = async () => {
     if (currentDeleteIndex !== null) {
-      const updatedEntries = entries.filter((_, index) => index !== currentDeleteIndex);
-      setEntries(updatedEntries);
-      setIsDeleteConfirmVisible(false);
-      setCurrentDeleteIndex(null);
-      setCurrentEntry(null);
+      const entryToDelete = entries[currentDeleteIndex];
+      const session = driver.session();
+      try {
+        await session.run(
+          `
+          MATCH (u:User {sessionToken: $sessionToken})-[:HAS_ENTRY]->(j:Journal {date: $date})
+          DELETE j
+          `,
+
+          {
+            sessionToken,
+            date: entryToDelete.date,
+          }
+
+        );
+
+        const updatedEntries = entries.filter((_, index) => index !== currentDeleteIndex);
+        setEntries(updatedEntries);
+        setIsDeleteConfirmVisible(false);
+        setCurrentDeleteIndex(null);
+        setCurrentEntry(null);
+      } catch (error) {
+        console.error('Failed to delete journal entry in Neo4j:', error);
+        Alert.alert('Error', 'Could not delete journal entry.');
+      } finally {
+        await session.close();
+      }
     }
   };
+
 
   const renderNewEntryForm = () => (
     <View style={styles.formContainer}>
