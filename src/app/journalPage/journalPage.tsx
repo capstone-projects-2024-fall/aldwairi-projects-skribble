@@ -391,7 +391,7 @@ const JournalPage: React.FC = () => {
           style={[styles.deleteButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
           onPress={() => showDeleteConfirmation(entries.indexOf(currentEntry!))}
         >
-          <Text style={styles.buttonText}>Delete Entry</Text>
+          <Text style={styles.deleteButton}>Delete Entry</Text>
         </TouchableOpacity>
       </View>
     </View>

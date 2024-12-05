@@ -6,6 +6,7 @@ const windowHeight = Dimensions.get('window').height;
 
 
 export const styles = StyleSheet.create({
+
  // Container Styles
  container: {
    flex: 1,
@@ -255,6 +256,64 @@ export const styles = StyleSheet.create({
    fontWeight: 'bold',
  },
 
+  // Container Styles
+  container: {
+    flex: 1,
+    backgroundColor: '#99CA9C',
+  
+    padding: 20,
+  },
+  centerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formContainer: {
+    width: '100%',
+    padding: 16,
+    gap: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleInput: {
+    width: windowWidth > 768 ? '80%' : '100%',  // Only reduce width on desktop
+    maxWidth: windowWidth > 768 ? 600 : '100%',  // Optional: set a max width for desktop
+    padding: 12,
+    
+    borderWidth: 1.5,
+    borderColor: '#454545',
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+
+  contentTextarea: {
+    width: windowWidth > 768 ? '80%' : '100%',  
+    maxWidth: windowWidth > 768 ? 600 : '100%', 
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: '#454545',
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
 
  // Journal Entries Grid
  entriesGrid: {
@@ -278,7 +337,6 @@ export const styles = StyleSheet.create({
    borderTopWidth: 1,
    borderTopColor: '#ccc',
  },
-
 
  // Back Button
  backButton: {
@@ -403,6 +461,175 @@ export const styles = StyleSheet.create({
      height: 16,
    }),
  },
+  // Form Styles
+  journalForm: {
+    width: '100%',
+    gap: 10,
+    marginBottom: 20,
+  },
+  formInput: {
+    width: windowWidth > 768 ? '80%' : '100%',  
+    maxWidth: windowWidth > 768 ? 600 : '100%', 
+    padding: 12,
+    alignItems: 'center',  
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: 'white',
+  },
+  formTextarea: {
+    width: windowWidth > 768 ? '80%' : '100%',  
+    maxWidth: windowWidth > 768 ? 600 : '100%', 
+    minHeight: 150,
+    padding: 12,
+    alignItems: 'center',  
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: 'white',
+    textAlignVertical: 'top',
+  },
+
+  // Button Styles
+  centerButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  outlinedButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#05630b',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#045209',
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newEntryButton: {...
+    (Platform.OS === 'web' ? { 
+      width: 160,
+      height: 60,
+    } : {
+      width: '100%',
+      height: undefined,
+      aspectRatio: 1,
+    }),
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    backgroundColor: '#05630b',
+    borderRadius: 40,
+  },
+  newEntryButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  styledButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#05630b',
+    borderRadius: 5,
+  },
+  styledButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+
+  // Delete Styles
+  deleteButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 5  ,
+    backgroundColor: '#FF0000',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FF0000',
+    minWidth: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+        color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  deleteConfirmationModal: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  deleteModalHeader: {
+    backgroundColor: '#05630b',
+    padding: 20,
+    alignItems: 'center',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  deleteModalTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  deleteModalBody: {
+    padding: 20,
+  },
+  deleteModalText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  deleteModalButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmDeleteButton: {
+    backgroundColor: '#dc3545',
+  },
+  cancelDeleteButtonText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmDeleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 
 
  // Full Entry View

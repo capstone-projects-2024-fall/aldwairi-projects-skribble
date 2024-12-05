@@ -6,6 +6,7 @@ import styles from "./indexStyles";
 import createNeo4jDriver from './utils/databaseSetUp';
 import { AuthContext } from "./AuthContext";
 import { avatar_list } from "@/assets/avatars/avatarAssets";
+import {Encryption, EncryptionResult} from "@/encryption/Encryption";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -107,6 +108,16 @@ export default function LogIn() {
         } else {
           setError("User already exists.");
         }
+        
+        let salt = Encryption.generateSalt()
+        let key = Encryption.generateKeyFromPassword(password, salt)
+        
+        await AsyncStorage.setItem("email", email);
+        await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+        await AsyncStorage.setItem("salt", salt);
+        
+        console.log("User signed up successfully.");
+        router.push("/homePage");
       } catch (error) {
         console.error("Failed to sign up user", error);
         setError("An error occurred while signing up. Please try again.");
@@ -138,6 +149,23 @@ export default function LogIn() {
       } finally {
         await session.close();
         await driver.close();
+        
+      // Sign in logic (validating credentials)
+      const storedEmail = await AsyncStorage.getItem("email");
+      const storedPassword = await AsyncStorage.getItem("password");
+      const storedSalt = await AsyncStorage.getItem("salt");
+      
+      let key = Encryption.generateKeyFromPassword(password, storedSalt!)
+      let encryptedPassword: EncryptionResult = JSON.parse(storedPassword!)
+      let decryptedPassword = Encryption.decrypt(key, encryptedPassword.iv, encryptedPassword.ciphertext)
+
+      if (storedEmail === email && decryptedPassword === password) {
+        console.log("User signed in successfully.");
+        setError(""); // Clear any previous error message
+        router.push("/homePage"); // Navigate to home screen
+      } else {
+        console.log("Invalid credentials.");
+        setError("Invalid email or password. Please try again.");
       }
     }
   };
