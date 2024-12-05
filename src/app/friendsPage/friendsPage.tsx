@@ -3,9 +3,11 @@ import { View, Text, Image, TouchableOpacity, TextInput, FlatList, SafeAreaView,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { avatar_list } from '../../assets/avatars/avatarAssets';
+import { clothes_list } from '../../assets/clothing/clothingAssets';
 import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
+import styles from './styles';
 
 const FriendsPage = () => {
   const [activeTab, setActiveTab] = useState('friends');
@@ -17,8 +19,9 @@ const FriendsPage = () => {
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
   const [friendCode, setFriendCode] = useState('');
+  const [wornItems, setWornItems] = useState<any[]>([]);
   const { sessionToken } = useContext(AuthContext);
-  
+
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
@@ -26,16 +29,18 @@ const FriendsPage = () => {
     id: number;
     name: string;
     avatar: any;
+    clothes: any[];
     friendCode: string;
   }
   interface FriendRequest {
     id: number;
     name: string;
     avatar: any;
+    clothes: any[];
     friendCode: string;
   }
 
-  const [friendsList, setFriendsList] = useState<FriendRequest[]>([]);
+  const [friendsList, setFriendsList] = useState<Friend[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
 
   const router = useRouter();
@@ -64,6 +69,23 @@ const FriendsPage = () => {
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
           setFriendCode(friendCode);
+
+          // Load friends list
+          const friendsResult = await session.run(
+            `MATCH (u:User {sessionToken: $sessionToken})-[:FRIENDS_WITH]->(f:User)
+            RETURN f.name AS name, f.avatarImage AS avatarImage, f.friendCode AS friendCode`,
+            { sessionToken }
+          );
+
+          const friends = friendsResult.records.map(record => ({
+            id: record.get("friendCode"), 
+            name: record.get("name"),
+            avatar: record.get("avatarImage"),
+            clothes: [], 
+            friendCode: record.get("friendCode")
+          }));
+          
+          setFriendsList(friends);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -89,27 +111,41 @@ const FriendsPage = () => {
       Alert.alert('Error', 'Please enter a friend code');
       return;
     }
-
+  
     const session = driver.session();
     try {
       const result = await session.run(
-        `MATCH (u:User {friendCode: $friendRequestCode})
-         RETURN u.name AS name, u.avatarImage AS avatarImage`,
+        `MATCH (targetUser:User {friendCode: $friendRequestCode})
+         OPTIONAL MATCH (targetUser)-[:WEARS]->(item:Item)
+         RETURN targetUser.name AS name, 
+                targetUser.avatarImage AS avatarImage,
+                collect(item.item_id) AS wornItems`,
         { friendRequestCode }
       );
-
+  
       if (result.records.length > 0) {
         const record = result.records[0];
         const friendName = record.get("name");
         const friendAvatar = record.get("avatarImage");
+        const clothes = record.get("wornItems");
 
+        console.log("Friend properties:", { friendName, friendAvatar, clothes });
+  
+        // Create a friend request relationship in the database
+        await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken}), (f:User {friendCode: $friendRequestCode})
+          MERGE (u)-[:SENT_FRIEND_REQUEST]->(f)`,
+          { sessionToken, friendRequestCode }
+        );
+  
         const newRequest = {
           id: friendRequests.length + 1,
           name: friendName,
-          avatar: friendAvatar,
+          avatar: friendAvatar, 
+          clothes: clothes,
           friendCode: friendRequestCode
         };
-
+  
         setFriendRequests([...friendRequests, newRequest]);
         setFriendRequestCode('');
         setFriendRequestModal(false);
@@ -119,7 +155,8 @@ const FriendsPage = () => {
       }
     } catch (error) {
       console.error("Failed to send friend request", error);
-      Alert.alert("Error", "Could not send friend request. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      Alert.alert("Error", `Could not send friend request. Please try again. Error: ${errorMessage}`);
     } finally {
       await session.close();
     }
@@ -153,6 +190,8 @@ const FriendsPage = () => {
     Alert.alert('Notification', `Friend request from ${request.name} has been rejected`);
   };
 
+  const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
+
   const renderFriendGridItem = ({ item }: { item: Friend }) => {
     const screenWidth = Dimensions.get('window').width;
 
@@ -165,42 +204,29 @@ const FriendsPage = () => {
     return (
       <TouchableOpacity
         onPress={() => setSelectedFriend(item)}
-        style={{
+        style={[styles.friendGridItem, {
           width: Platform.select({
             web: screenWidth / 3 - 20,
             default: screenWidth / 2 - 20
           }),
-          margin: 10,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        }]}
       >
-        <View style={{
-          width: imageSize,
-          height: imageSize,
-          alignItems: 'center', 
-          justifyContent: 'center'
-        }}>
+        <View style={[styles.friendGridItemImageContainer, { width: imageSize, height: imageSize }]}>
           <Image
-            source={item.avatar}
-            style={{
-              width: '120%',
-              height: '105%',
-              resizeMode: 'contain',
-              margin: '2%',
-            }}
+            source={avatar_list.find(avatar => avatar.avatar_id === item.avatar)?.avatar_image}
+            style={[styles.friendGridItemImage,{ width: '100%', height: '100%' }]}
+            resizeMode="contain"
           />
+          {wornItemsDetails.map(item => (
+          <Image
+            key={item._id}
+            source={item.image}
+            style={styles.wornItem}
+            resizeMode="contain"
+          />
+        ))}
         </View>
-        <Text
-          style={{
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: 26,
-            color: 'black',
-            marginTop: 10,
-            alignSelf: 'center'
-          }}
-        >
+        <Text style={[styles.friendGridItemText, { fontSize: 24 }]}>
           {item.name}
         </Text>
       </TouchableOpacity>
@@ -217,66 +243,42 @@ const FriendsPage = () => {
     });
 
     return (
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 15,
-          borderBottomWidth: 1,
-          borderBottomColor: '#eee',
-          backgroundColor: backgroundColor,
-          width: '100%'
-        }}
-      >
-        <View style={{
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: avatarSize / 2,
-          marginRight: 15,
-        }}>
+      <View style={[styles.friendRequestItem, { backgroundColor, width: '100%' }]}>
+        <View style={[styles.friendRequestAvatarContainer, { width: avatarSize, height: avatarSize }]}>
+        <Image
+          source={avatar_list.find(avatar => avatar.avatar_id === item.avatar)?.avatar_image}
+          style={[styles.friendRequestAvatar, { width: '100%', height: '100%' }]}
+          resizeMode="contain"
+        />
+          {wornItemsDetails.map(item => (
           <Image
-            source={item.avatar}
-            style={{
-              paddingTop: '10%',
-              width: '115%',
-              height: '115%',
-              resizeMode: 'contain',
-            }}
+            key={item._id}
+            source={item.image}
+            style={styles.wornItem}
+            resizeMode="contain"
           />
+        ))}
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{
-            fontWeight: 'bold',
-            fontSize: 18,
-            marginBottom: 5
-          }}>
+        <View style={styles.friendRequestTextContainer}>
+          <Text style={styles.friendRequestName}>
             {item.name}
           </Text>
-          <Text style={{ color: 'gray' }}>
+          <Text style={styles.friendRequestMessage}>
             Wants to be your friend
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={styles.friendRequestButtonsContainer}>
           <TouchableOpacity
             onPress={() => rejectFriendRequest(item)}
-            style={{
-              backgroundColor: '#EF4444',
-              padding: 10,
-              borderRadius: 5,
-              marginRight: 10
-            }}
+            style={[styles.rejectButton, { borderWidth: 3, backgroundColor: '#FFF' }]}
           >
-            <Text style={{ color: 'white' }}>Reject</Text>
+            <Text style={[styles.rejectButtonText, { fontWeight: 'bold' }]}>Reject</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => acceptFriendRequest(item)}
-            style={{
-              backgroundColor: headerColor,
-              padding: 10,
-              borderRadius: 5
-            }}
+            style={[styles.acceptButton, { borderWidth: 3, backgroundColor: '#FFF' }]}
           >
-            <Text style={{ color: 'white' }}>Accept</Text>
+            <Text style={{ ...styles.acceptButtonText, fontWeight: 'bold' }}>Accept</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -318,23 +320,12 @@ const FriendsPage = () => {
   const renderFriendProfile = () => {
     if (!selectedFriend) return null;
     return (
-      <View style={{ backgroundColor: backgroundColor }}>
-        <View style={{
-          backgroundColor: headerColor,
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 15,
-          justifyContent: 'space-between'
-        }}>
+      <View style={[styles.friendProfileContainer, { backgroundColor }]}>
+        <View style={[styles.friendProfileHeader, { backgroundColor: headerColor }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => setSelectedFriend(null)}>
-              <Text style={{ color: 'white', marginRight: 15 }}>Back</Text>
+              <Text style={styles.friendProfileBackButton}>Back</Text>
             </TouchableOpacity>
-            <Text style={{
-              color: 'white',
-              fontSize: 18,
-              fontWeight: 'bold'
-            }}>{selectedFriend.name}</Text>
           </View>
           <TouchableOpacity
             onPress={() => {
@@ -342,40 +333,28 @@ const FriendsPage = () => {
               console.log('Remove button pressed', selectedFriend);
               removeFriend(selectedFriend);
             }}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              padding: 8,
-              borderRadius: 5
-            }}
+            style={styles.friendProfileRemoveButton}
           >
-            <Text style={{ color: 'white' }}>Remove</Text>
+            <Text style={styles.friendProfileRemoveButtonText}>Remove</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ alignItems: 'center', padding: 20 }}>
-          <View style={{
-            width: 200,
-            height: 200,
-            borderRadius: 100,
-            backgroundColor: 'white',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderWidth: 2,
-            borderColor: headerColor,
-          }}>
+        <View style={styles.friendProfileImageContainer}>
+          <View style={[styles.friendProfileImageWrapper, { borderColor: headerColor }]}>
             <Image
-              source={selectedFriend.avatar}
-              style={{
-                width: '90%',
-                height: '90%',
-                resizeMode: 'contain',
-              }}
+              source={avatar_list.find(avatar => avatar.avatar_id === selectedFriend.avatar)?.avatar_image}
+              style={[styles.friendProfileImage, { width: 450, height: 450 }]}
+              resizeMode="contain"
             />
+            {wornItemsDetails.map(item => (
+              <Image
+                key={item._id}
+                source={item.image}
+                style={styles.wornItem}
+                resizeMode="contain"
+              />
+            ))}
           </View>
-          <Text style={{
-            fontSize: 20,
-            fontWeight: 'bold',
-            marginTop: 15
-          }}>{selectedFriend.name}</Text>
+          <Text style={[styles.friendProfileName, { fontSize: 24 }]}>{selectedFriend.name}</Text>
         </View>
       </View>
     );
@@ -387,75 +366,50 @@ const FriendsPage = () => {
     }
 
     return (
-      <View style={{ backgroundColor: backgroundColor, flex: 1 }}>
+      <View style={[styles.container, { backgroundColor }]}>
         {/* Header */}
-        <View style={{
-          backgroundColor: headerColor,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: 15
-        }}>
+        <View style={[styles.headerContainer, { backgroundColor: headerColor }]}>
           <TouchableOpacity 
-          onPress={() => router.push('/homePage')}
-            style={{
-              alignItems: 'center',
-              backgroundColor: 'white',
-              padding: 8,
-              borderRadius: 5
-            }}>
-            <Text style={{ color: headerColor, marginRight: 15 }}>Back</Text>
+            onPress={() => router.push('/homePage')}
+            style={[styles.headerButton, {backgroundColor: backgroundColor}]}
+          >
+            <Text style={[styles.headerButtonText, { marginLeft: 20 }]}>Back</Text>
           </TouchableOpacity>
-          <Text style={{
-            color: 'white',
-            fontSize: 18,
-            fontWeight: 'bold'
-          }}>Friends</Text>
+          <Text style={styles.headerTitle}>Friends</Text>
           <TouchableOpacity
             onPress={() => setFriendRequestModal(true)}
-            style={{
-              backgroundColor: 'white',
-              padding: 8,
-              borderRadius: 5
-            }}
+            style={[styles.addFriendButton, , {backgroundColor: backgroundColor}]}
           >
-            <Text style={{ color: headerColor}}>Add Friend</Text>
+            <Text style={styles.addFriendButtonText}>Add Friend</Text>
           </TouchableOpacity>
         </View>
 
         {/* Tabs */}
-        <View style={{
-          flexDirection: 'row',
-          backgroundColor: '#F3F4F6'
-        }}>
+        <View style={styles.tabsContainer}>
           <TouchableOpacity
-            style={{
-              flex: 1,
-              padding: 15,
-              alignItems: 'center',
-              borderBottomWidth: activeTab === 'friends' ? 2 : 0,
-              borderBottomColor: headerColor
-            }}
+            style={[
+              styles.tabButton,
+              activeTab === 'friends' && styles.activeTabButton,
+            ]}
             onPress={() => setActiveTab('friends')}
           >
-            <Text style={{
-              color: activeTab === 'friends' ? headerColor : 'gray'
-            }}>My Friends</Text>
+            <Text style={[
+              styles.tabButtonText,
+              activeTab === 'friends' && styles.activeTabButtonText,
+            ]}>My Friends</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={{
-              flex: 1,
-              padding: 15,
-              alignItems: 'center',
-              borderBottomWidth: activeTab === 'requests' ? 2 : 0,
-              borderBottomColor: headerColor
-            }}
+            style={[
+              styles.tabButton,
+              activeTab === 'requests' && styles.activeTabButton,
+            ]}
             onPress={() => setActiveTab('requests')}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{
-                color: activeTab === 'requests' ? headerColor : 'gray'
-              }}>Requests</Text>
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'requests' && styles.activeTabButtonText,
+              ]}>Requests</Text>
               {friendRequests.length > 0 && (
                 <View style={{
                   backgroundColor: 'red',
@@ -480,16 +434,12 @@ const FriendsPage = () => {
         </View>
 
         {/* Search Bar */}
-        <View style={{ padding: 10, backgroundColor: '#F3F4F6' }}>
+        <View style={styles.searchBarContainer}>
           <TextInput
             placeholder="Search friends"
             value={searchQuery}
             onChangeText={setSearchQuery}
-            style={{
-              backgroundColor: 'white',
-              padding: 10,
-              borderRadius: 5
-            }}
+            style={styles.searchBar}
           />
         </View>
 
@@ -532,67 +482,27 @@ const FriendsPage = () => {
           visible={friendRequestModal}
           onRequestClose={() => setFriendRequestModal(false)}
         >
-          <View style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0,0,0,0.5)'
-          }}>
-            <View style={{
-              backgroundColor: 'white',
-              padding: 20,
-              borderRadius: 10,
-              width: '80%'
-            }}>
-              <Text style={{
-                fontSize: 18,
-                fontWeight: 'bold',
-                marginBottom: 15
-              }}>Send Friend Request</Text>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalTitle}>Send Friend Request</Text>
               <TextInput
                 placeholder="Enter friend code"
                 value={friendRequestCode}
                 onChangeText={setFriendRequestCode}
-                style={{
-                  borderWidth: 1,
-                  borderColor: '#ccc',
-                  padding: 10,
-                  borderRadius: 5,
-                  marginBottom: 15
-                }}
+                style={styles.modalInput}
               />
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between'
-              }}>
+              <View style={styles.modalButtonsContainer}>
                 <TouchableOpacity
                   onPress={() => setFriendRequestModal(false)}
-                  style={{
-                    backgroundColor: '#F3F4F6',
-                    padding: 10,
-                    borderRadius: 5,
-                    flex: 1,
-                    marginRight: 10
-                  }}
+                  style={styles.modalCancelButton}
                 >
-                  <Text style={{
-                    textAlign: 'center',
-                    color: 'black'
-                  }}>Cancel</Text>
+                  <Text style={styles.modalCancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={sendFriendRequest}
-                  style={{
-                    backgroundColor: headerColor,
-                    padding: 10,
-                    borderRadius: 5,
-                    flex: 1
-                  }}
+                  style={[styles.modalSendButton, { backgroundColor: headerColor }]}
                 >
-                  <Text style={{
-                    textAlign: 'center',
-                    color: 'white'
-                  }}>Send</Text>
+                  <Text style={styles.modalSendButtonText}>Send</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -603,10 +513,7 @@ const FriendsPage = () => {
   };
 
   return (
-    <SafeAreaView style={{
-      flex: 1,
-      backgroundColor: backgroundColor
-    }}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       {renderMainContent()}
     </SafeAreaView>
   );
