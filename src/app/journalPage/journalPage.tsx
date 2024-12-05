@@ -12,7 +12,6 @@ import {
   Alert,
   Animated
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import { useRouter } from "expo-router";
 import createNeo4jDriver from '../utils/databaseSetUp';
@@ -20,26 +19,30 @@ import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
 interface JournalEntry {
+  entryID: number;
   title: string;
   content: string;
   date: string;
   imageIndex: number;
 }
 
-  const JournalPage: React.FC = () => {
-    const router = useRouter();
-    const [entries, setEntries] = useState<JournalEntry[]>([]);
-    const [isFormVisible, setIsFormVisible] = useState(false);
-    const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
-    const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
-    const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
-    const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
-    const [isGifVisible, setIsGifVisible] = useState(false);
-    const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
-    const { sessionToken } = useContext(AuthContext);
-    const fadeAnim = useState(new Animated.Value(0))[0];
+const JournalPage: React.FC = () => {
+  const router = useRouter();
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
+  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+  const [currentDeleteIndex, setCurrentDeleteIndex] = useState<number | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState<string>('#E3F2FD');
+  const [isGifVisible, setIsGifVisible] = useState(false);
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const { sessionToken } = useContext(AuthContext);
+  const [exp, setExp] = useState(0);
+  const [coins, setCoins] = useState(0);
+  const [streaks, setStreaks] = useState(0);
+  const fadeAnim = useState(new Animated.Value(0))[0];
 
   const BEAR_IMAGES = [
     require('../../assets/images/bear/bear1.png'),
@@ -107,13 +110,16 @@ interface JournalEntry {
       const session = driver.session()
       try {
         const result = await session.run(
-          'MATCH (u:User {sessionToken: $sessionToken}) RETURN u.backgroundColor AS backgroundColor, u.avatarImage as avatarImage',
+          'MATCH (u:User {sessionToken: $sessionToken}) RETURN u.backgroundColor AS backgroundColor, u.avatarImage as avatarImage, u.exp AS exp, u.coins AS coins, u.streaks AS streaks',
           { sessionToken }
         );
         if (result.records.length > 0) {
           const record = result.records[0];
           const backgroundColor = record.get("backgroundColor");
           const avatarImage = record.get("avatarImage");
+          setExp(record.get("exp") || 0);
+          setCoins(record.get("coins") || 0);
+          setStreaks(record.get("streaks") || 0);
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
         } else {
@@ -124,40 +130,41 @@ interface JournalEntry {
         Alert.alert("Error", "Could not fetch user data.");
       } finally {
         await session.close();
-    }
-  };
+      }
+    };
 
-  const loadEntries = async () => {
-    const session = driver.session();
-    try {
-      const result = await session.run(
-        `
+    const loadEntries = async () => {
+      const session = driver.session();
+      try {
+        const result = await session.run(
+          `
         MATCH (u:User {sessionToken: $sessionToken})-[:HAS_ENTRY]->(j:Journal)
         RETURN j.entryID AS entryID, j.date AS date, j.title AS title, j.content AS content, j.imageIndex AS imageIndex
         ORDER BY j.date DESC
         `,
-        { sessionToken }
-      );
+          { sessionToken }
+        );
 
-      const fetchedEntries = result.records.map((record) => ({
-        title: record.get('title'),
-        content: record.get('content'),
-        date: record.get('date'),
-        imageIndex: record.get('imageIndex'),
-      }));
+        const fetchedEntries = result.records.map((record) => ({
+          entryID: record.get('entryID'),
+          title: record.get('title'),
+          content: record.get('content'),
+          date: record.get('date'),
+          imageIndex: record.get('imageIndex'),
+        }));
 
-      setEntries(fetchedEntries);
-    } catch (error) {
-      console.error('Failed to load journal entries from Neo4j:', error);
-      Alert.alert('Error', 'Could not load journal entries.');
-    } finally {
-      await session.close();
-    }
-  };
+        setEntries(fetchedEntries);
+      } catch (error) {
+        console.error('Failed to load journal entries from Neo4j:', error);
+        Alert.alert('Error', 'Could not load journal entries.');
+      } finally {
+        await session.close();
+      }
+    };
 
     loadEntries();
     loadUserData();
-    console.log("User properties:", { backgroundColor, avatarImage });
+    console.log("User properties:", { backgroundColor, avatarImage, exp, coins, streaks });
   }, [sessionToken]);
 
   const navigateToHomePage = () => {
@@ -186,7 +193,7 @@ interface JournalEntry {
 
   const getRandomImageIndex = (): number => {
     const imageSet = getImageSet(avatarImage);
-    console.log("imageSet:", {imageSet})
+    console.log("imageSet:", { imageSet })
     return Math.floor(Math.random() * imageSet.length);
   };
 
@@ -208,6 +215,7 @@ interface JournalEntry {
     }
 
     const newEntry: JournalEntry = {
+      entryID: currentEntry.entryID,
       title: currentEntry.title,
       content: currentEntry.content,
       date: new Date().toISOString(),
@@ -274,17 +282,26 @@ interface JournalEntry {
       const entryToDelete = entries[currentDeleteIndex];
       const session = driver.session();
       try {
+        // Delete the relationship
         await session.run(
           `
-          MATCH (u:User {sessionToken: $sessionToken})-[:HAS_ENTRY]->(j:Journal {date: $date})
-          DELETE j
-          `,
-
+        MATCH (u:User {sessionToken: $sessionToken})-[r:HAS_ENTRY]->(j:Journal {entryID: $entryID})
+        DELETE r
+        `,
           {
             sessionToken,
-            date: entryToDelete.date,
+            entryID: entryToDelete.entryID, // Ensure `entryID` is unique for each Journal entry
           }
+        );
 
+        // Optionally delete the Journal node if no other relationships exist
+        await session.run(
+          `
+        MATCH (j:Journal {entryID: $entryID})
+        WHERE NOT (j)<-[:HAS_ENTRY]-()
+        DELETE j
+        `,
+          { entryID: entryToDelete.entryID }
         );
 
         const updatedEntries = entries.filter((_, index) => index !== currentDeleteIndex);
@@ -430,8 +447,8 @@ interface JournalEntry {
 
       {/* Home Button */}
       <TouchableOpacity style={[styles.homeButton, { backgroundColor: getDarkerShade(backgroundColor), marginTop: 20 }]} onPress={navigateToHomePage}>
-                <Text style={styles.buttonText}>Home</Text>
-        </TouchableOpacity>
+        <Text style={styles.buttonText}>Home</Text>
+      </TouchableOpacity>
 
       {isFormVisible && renderNewEntryForm()}
       {!isFormVisible && currentEntry && renderEntry()}
