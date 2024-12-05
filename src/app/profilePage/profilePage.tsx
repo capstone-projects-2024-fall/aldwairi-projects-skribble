@@ -45,12 +45,12 @@ const ProfilePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})
-           RETURN u.email AS email, 
-                  u.coins AS coins, 
-                  u.streak AS streak, 
-                  u.exp AS exp, 
-                  u.name AS name, 
-                  u.backgroundColor AS backgroundColor, 
+           RETURN u.email AS email,
+                  u.coins AS coins,
+                  u.streak AS streak,
+                  u.exp AS exp,
+                  u.name AS name,
+                  u.backgroundColor AS backgroundColor,
                   u.friendCode as friendCode,
                   u.avatarImage AS avatarImage,
                   u.allowAddViewFriends AS allowAddViewFriends`,
@@ -62,10 +62,11 @@ const ProfilePage: React.FC = () => {
         if (result.records.length > 0) {
           // Directly accessing the fields in the result
           const record = result.records[0];
+          // Extract values from the result, handling the INTEGER type if necessary
           const email = record.get("email");
-          const coins = record.get("coins").toNumber(); 
-          const streak = record.get("streak").toNumber();
-          const exp = record.get("exp").toNumber();
+          const coins = record.get("coins")?.low || 0;  // Extracting low value from INTEGER object
+          const streak = record.get("streak")?.low || 0;
+          const exp = record.get("exp")?.low || 0;
           const name = record.get("name");
           const backgroundColor = record.get("backgroundColor");
           const friendCode = record.get("friendCode");
