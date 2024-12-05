@@ -10,11 +10,13 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npm install
    npm install react-native-svg
+   npm install react-native-uuid
    ```
 
 2. Start the app
 
    ```bash
+    cd src
     npx expo start
    ```
 
