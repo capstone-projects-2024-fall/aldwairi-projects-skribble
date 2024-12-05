@@ -34,8 +34,9 @@ const StorePage: React.FC = () => {
         );
 
         if (result.records.length > 0) {
-          const coins = result.records[0].get("coins").toNumber();
-          const backgroundColor = result.records[0].get("backgroundColor");
+          const record = result.records[0];
+          const backgroundColor = record.get("backgroundColor");
+          const coins = Number(record.get("coins"));  
           setUserCoins(coins);
           setBackgroundColor(backgroundColor);
         } else {
