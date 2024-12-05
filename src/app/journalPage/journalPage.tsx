@@ -227,6 +227,7 @@ const JournalPage: React.FC = () => {
       await session.run(
         `
         MATCH (u:User {sessionToken: $sessionToken})
+        SET u.coins = u.coins + 5, u.exp = u.exp + 10, u.streak = u.streak + 1
         CREATE (j:Journal {
           entryID: randomUUID(),
           date: $date,
@@ -244,7 +245,7 @@ const JournalPage: React.FC = () => {
           imageIndex: newEntry.imageIndex,
         }
       );
-
+      console.log('Query result:', session);
       setEntries([newEntry, ...entries]);
       setIsFormVisible(false);
       setSelectedPrompt(null);

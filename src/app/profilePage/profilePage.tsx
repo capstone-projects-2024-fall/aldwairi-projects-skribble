@@ -62,11 +62,10 @@ const ProfilePage: React.FC = () => {
         if (result.records.length > 0) {
           // Directly accessing the fields in the result
           const record = result.records[0];
-          // Extract values from the result, handling the INTEGER type if necessary
           const email = record.get("email");
-          const coins = record.get("coins")?.low || 0;  // Extracting low value from INTEGER object
-          const streak = record.get("streak")?.low || 0;  // Same here for streak
-          const exp = record.get("exp")?.low || 0;  // Same for exp
+          const coins = record.get("coins").toNumber(); 
+          const streak = record.get("streak").toNumber();
+          const exp = record.get("exp").toNumber();
           const name = record.get("name");
           const backgroundColor = record.get("backgroundColor");
           const friendCode = record.get("friendCode");
