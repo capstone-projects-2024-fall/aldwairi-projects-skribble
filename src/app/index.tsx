@@ -1,12 +1,13 @@
 import React, { useState, useContext } from "react";
 import { Text, View, TextInput, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import uuid from 'react-native-uuid'; // Add this import
+import uuid from 'react-native-uuid';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from "./indexStyles";
 import createNeo4jDriver from './utils/databaseSetUp';
 import { AuthContext } from "./AuthContext";
 import { avatar_list } from "@/assets/avatars/avatarAssets";
-import {Encryption, EncryptionResult} from "@/encryption/Encryption";
+import { Encryption, EncryptionResult } from "@/encryption/Encryption";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -32,46 +33,45 @@ export default function LogIn() {
   const handleAuth = async () => {
     const session = driver.session();
 
-    if (isSignUp) {
-      if (!email || !password || !birthday) {
-        setError("Email, password, and birthday cannot be blank.");
-        return;
-      }
+    try {
+      if (isSignUp) {
+        // Sign Up Logic
+        if (!email || !password || !birthday) {
+          setError("Email, password, and birthday cannot be blank.");
+          return;
+        }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        setError("Please enter a valid email address.");
-        return;
-      }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          setError("Please enter a valid email address.");
+          return;
+        }
 
-      // generate unique petID
-      const generatedPetID = uuid.v4();
-      setPetID(generatedPetID);
-      const petName = "Benny";
-      console.log("Generated Pet ID:", generatedPetID);
-      
+        // generate unique petID
+        const generatedPetID = uuid.v4();
+        setPetID(generatedPetID);
+        const petName = "Benny";
 
-      const birthDate = new Date(birthday);
-      const age = new Date().getFullYear() - birthDate.getFullYear();
-      const needsParentalControls = age < 13;
+        const birthDate = new Date(birthday);
+        const age = new Date().getFullYear() - birthDate.getFullYear();
+        const needsParentalControls = age < 13;
 
-      const enableChat = !needsParentalControls;
-      const allowAddViewFriends = !needsParentalControls;
-      const allowMediaSharing = !needsParentalControls;
-      const timeLimit = needsParentalControls ? 2 : null;
+        const enableChat = !needsParentalControls;
+        const allowAddViewFriends = !needsParentalControls;
+        const allowMediaSharing = !needsParentalControls;
+        const timeLimit = needsParentalControls ? 2 : null;
 
-      if (needsParentalControls && !parentEmail) {
-        setError("Parent's email is required for users under 13.");
-        return;
-      }
+        if (needsParentalControls && !parentEmail) {
+          setError("Parent's email is required for users under 13.");
+          return;
+        }
 
-      try {
         // Create a new user or ensure the user exists
-        // create a pet for the user and link them
         const sessionToken = uuid.v4(); 
         const friendCode = uuid.v4();
         setSessionToken(sessionToken);
         const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
+
         const result = await session.run(
           `MERGE (u:User {email: $email})
            ON CREATE SET
@@ -98,38 +98,45 @@ export default function LogIn() {
              p.petPNG = $defaultAvatar  
            MERGE (u)-[:HAS_PET]->(p)
            RETURN u, p`,
-           
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar, friendCode, petID, petName  }
+          { 
+            email, 
+            password, 
+            name: "New User", 
+            birthday, 
+            parentEmail, 
+            needsParentalControls, 
+            sessionToken, 
+            enableChat, 
+            allowAddViewFriends, 
+            allowMediaSharing, 
+            timeLimit, 
+            defaultAvatar, 
+            friendCode, 
+            petID, 
+            petName 
+          }
         );
 
         if (result.summary.counters.containsUpdates()) {
+          // Generate salt and encrypt password
+          const salt = Encryption.generateSalt();
+          const key = Encryption.generateKeyFromPassword(password, salt);
+          
+          // Store encrypted credentials
+          await AsyncStorage.setItem("email", email);
+          await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+          await AsyncStorage.setItem("salt", salt);
+          
           console.log("User signed up successfully.");
           router.push("/homePage");
         } else {
           setError("User already exists.");
         }
-        
-        let salt = Encryption.generateSalt()
-        let key = Encryption.generateKeyFromPassword(password, salt)
-        
-        await AsyncStorage.setItem("email", email);
-        await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
-        await AsyncStorage.setItem("salt", salt);
-        
-        console.log("User signed up successfully.");
-        router.push("/homePage");
-      } catch (error) {
-        console.error("Failed to sign up user", error);
-        setError("An error occurred while signing up. Please try again.");
-      } finally {
-        await session.close();
-        await driver.close();
-      }
-    } else {
-      try {
-        // Validate existing user credentials (LOG-IN)
-        const sessionToken = uuid.v4(); // Use this instead of the previous generateSessionToken()
+      } else {
+        // Sign In Logic
+        const sessionToken = uuid.v4();
         setSessionToken(sessionToken);
+
         const result = await session.run(
           `MATCH (u:User {email: $email, password: $password})
            SET u.sessionToken = $sessionToken
@@ -138,35 +145,35 @@ export default function LogIn() {
         );
 
         if (result.records.length > 0) {
-          console.log("User signed in successfully.");
-          router.push("/homePage");
+          // Verify stored credentials
+          const storedEmail = await AsyncStorage.getItem("email");
+          const storedPassword = await AsyncStorage.getItem("password");
+          const storedSalt = await AsyncStorage.getItem("salt");
+          
+          if (storedEmail && storedPassword && storedSalt) {
+            const key = Encryption.generateKeyFromPassword(password, storedSalt);
+            const encryptedPassword: EncryptionResult = JSON.parse(storedPassword);
+            const decryptedPassword = Encryption.decrypt(key, encryptedPassword.iv, encryptedPassword.ciphertext);
+
+            if (storedEmail === email && decryptedPassword === password) {
+              console.log("User signed in successfully.");
+              router.push("/homePage");
+            } else {
+              setError("Invalid email or password.");
+            }
+          } else {
+            setError("No stored credentials found.");
+          }
         } else {
           setError("Invalid email or password.");
         }
-      } catch (error) {
-        console.error("Failed to sign in user", error);
-        setError("An error occurred while signing in. Please try again.");
-      } finally {
-        await session.close();
-        await driver.close();
-        
-      // Sign in logic (validating credentials)
-      const storedEmail = await AsyncStorage.getItem("email");
-      const storedPassword = await AsyncStorage.getItem("password");
-      const storedSalt = await AsyncStorage.getItem("salt");
-      
-      let key = Encryption.generateKeyFromPassword(password, storedSalt!)
-      let encryptedPassword: EncryptionResult = JSON.parse(storedPassword!)
-      let decryptedPassword = Encryption.decrypt(key, encryptedPassword.iv, encryptedPassword.ciphertext)
-
-      if (storedEmail === email && decryptedPassword === password) {
-        console.log("User signed in successfully.");
-        setError(""); // Clear any previous error message
-        router.push("/homePage"); // Navigate to home screen
-      } else {
-        console.log("Invalid credentials.");
-        setError("Invalid email or password. Please try again.");
       }
+    } catch (error) {
+      console.error("Authentication error", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      await session.close();
+      await driver.close();
     }
   };
 
