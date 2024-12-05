@@ -1,244 +1,389 @@
-import React, { useState, useEffect } from 'react';
-import styles from './styles';
+import React, { useState, useEffect, useContext } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Platform,
-  ScrollView,
   Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Svg, Path } from 'react-native-svg';
-import { logOut } from '../logOut';
+  ScrollView,
+  Image,
+} from "react-native";
+import { useRouter } from "expo-router";
+import neo4j from "neo4j-driver";
+import { avatar_list } from '../../assets/avatars/avatarAssets';
+import styles from "./styles";
+import { logo_list } from '../../assets/logos/logosAssets';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext";
 
 const ProfilePage: React.FC = () => {
-  const [avatarName, setAvatarName] = useState('');
-  const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
-  const [userName, setUserName] = useState('John Doe');
+  const [userName, setUserName] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const { setSessionToken, sessionToken } = useContext(AuthContext);
   const [userInfo, setUserInfo] = useState({
-    email: '',
-    coins: 120,
-    streak: 15,
-    exp: 950,
+    name: "",
+    email: "",
+    coins: 0,
+    streak: 0,
+    exp: 0,
+    friendCode: "",
   });
+  const [newEmail, setNewEmail] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
   const router = useRouter();
 
-  // Load user data on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [savedColor, savedEmail, savedName] = await Promise.all([
-          AsyncStorage.getItem('backgroundColor'),
-          AsyncStorage.getItem('email'),
-          AsyncStorage.getItem('userName'),
-        ]);
+  // Set up the Neo4j driver
+  const driver = createNeo4jDriver();
 
-        if (savedColor) {
-          setBackgroundColor(savedColor);
-        }
-        if (savedEmail) {
-          setUserInfo(prevState => ({ ...prevState, email: savedEmail }));
-        }
-        if (savedName) {
-          setUserName(savedName);
+  // Load user data from Neo4j using sessionToken
+  useEffect(() => {
+    const loadUserData = async () => {
+      const session = driver.session();
+      try {
+        const result = await session.run(
+          `MATCH (u:User {sessionToken: $sessionToken})
+           RETURN u.email AS email,
+                  u.coins AS coins,
+                  u.streak AS streak,
+                  u.exp AS exp,
+                  u.name AS name,
+                  u.backgroundColor AS backgroundColor,
+                  u.friendCode as friendCode,
+                  u.avatarImage AS avatarImage,
+                  u.allowAddViewFriends AS allowAddViewFriends`,
+          { sessionToken }
+        );
+
+        console.log("Query result:", result); // Debugging: check the raw query result
+
+        if (result.records.length > 0) {
+          // Directly accessing the fields in the result
+          const record = result.records[0];
+          // Extract values from the result, handling the INTEGER type if necessary
+          const email = record.get("email");
+          const coins = Number(record.get("coins"));  
+          const streak = record.get("streak")?.low || 0;
+          const exp = record.get("exp")?.low || 0;
+          const name = record.get("name");
+          const backgroundColor = record.get("backgroundColor");
+          const friendCode = record.get("friendCode");
+          const avatarImage = record.get("avatarImage");
+          const allowAddViewFriends = record.get("allowAddViewFriends");
+
+          console.log("User properties:", { email, coins, streak, exp, name, backgroundColor, avatarImage, friendCode, allowAddViewFriends}); // Debugging
+
+          setUserInfo({
+            name,
+            email,
+            coins,
+            streak,
+            exp,
+            friendCode
+          });
+          setUserName(name || "Unnamed User");
+          setBackgroundColor(backgroundColor || "#FFFFFF");
+          setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+          setSelectedAvatar(avatarImage || avatar_list[0].avatar_image);
+          setAllowAddViewFriends(allowAddViewFriends);
+        } else {
+          Alert.alert("Error", "User not found.");
         }
       } catch (error) {
-        console.error('Failed to load data from AsyncStorage', error);
-        Alert.alert('Error', 'Failed to load user data');
+        console.error("Failed to load user data", error);
+        Alert.alert("Error", "Could not fetch user data.");
+      } finally {
+        await session.close();
       }
     };
-    loadData();
-  }, []);
 
-  const updateAvatarName = async () => {
-    if (avatarName.trim() === '') {
-      Alert.alert('Error', 'Avatar name cannot be empty');
+    if (sessionToken) {
+      loadUserData();
+    } else {
+      Alert.alert("Error", "No session token found.");
+    }
+  }, [sessionToken]);
+
+  // Handle Avatar Selection
+  const handleAvatarSelect = async (avatar_id: string) => {
+    setSelectedAvatar(avatar_id);
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $sessionToken})
+         SET u.avatarImage = $avatarImage
+         RETURN u`,
+        { sessionToken, avatarImage: avatar_id }
+      );
+      setAvatarImage(avatar_id);
+      Alert.alert("Success", "Avatar updated successfully.");
+    } catch (error) {
+      console.error("Failed to update avatar", error);
+      Alert.alert("Error", "Could not update avatar.");
+    } finally {
+      await session.close();
+    }
+  };
+
+  // Update User Name
+  const updateUserName = async () => {
+    if (!userName.trim()) {
+      Alert.alert("Error", "Name cannot be empty.");
       return;
     }
 
+    const session = driver.session();
     try {
-      await AsyncStorage.setItem('userName', avatarName);
-      setUserName(avatarName);
-      setAvatarName(''); // Clear input field
-      Alert.alert('Success', 'Avatar name updated successfully');
+      const result = await session.run(
+        `
+        MATCH (u:User {sessionToken: $sessionToken})
+        SET u.name = $newName
+        RETURN u.name AS updatedName
+        `,
+        { sessionToken, newName: userName }
+      );
+
+      if (result.records.length > 0) {
+        const updatedName = result.records[0].get("updatedName");
+        setUserInfo({ ...userInfo, name: updatedName });
+        setUserName(""); // Clear input
+        Alert.alert("Success", "Name updated successfully.");
+      } else {
+        Alert.alert("Error", "Failed to update name. User not found.");
+      }
     } catch (error) {
-      console.error('Failed to save avatar name', error);
-      Alert.alert('Error', 'Failed to update avatar name');
+      console.error("Failed to update name", error);
+      Alert.alert("Error", "Could not update name. Please try again.");
+    } finally {
+      await session.close();
     }
   };
 
-  const changeBackgroundColor = async (color: string) => {
+  // Update User Email
+  const updateUserEmail = async () => {
+    if (!newEmail.trim()) {
+      Alert.alert("Error", "Email cannot be empty.");
+      return;
+    }
+
+    const session = driver.session();
     try {
-      await AsyncStorage.setItem('backgroundColor', color);
+      const result = await session.run(
+        `
+        MATCH (u:User {sessionToken: $sessionToken})
+        SET u.email = $newEmail
+        RETURN u.email AS updatedEmail
+        `,
+        { sessionToken, newEmail }
+      );
+
+      if (result.records.length > 0) {
+        const updatedEmail = result.records[0].get("updatedEmail");
+        setUserInfo({ ...userInfo, email: updatedEmail });
+        setNewEmail(""); // Clear input
+        Alert.alert("Success", "Email updated successfully.");
+      } else {
+        Alert.alert("Error", "Failed to update email. User not found.");
+      }
+    } catch (error) {
+      console.error("Failed to update email", error);
+      Alert.alert("Error", "Could not update email. Please try again.");
+    } finally {
+      await session.close();
+    }
+  };
+
+  // Update Background Color
+  const updateBackgroundColor = async (color: string) => {
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $sessionToken})
+         SET u.backgroundColor = $color
+         RETURN u`,
+        { sessionToken, color }
+      );
+
+
       setBackgroundColor(color);
     } catch (error) {
-      console.error('Failed to save background color', error);
-      Alert.alert('Error', 'Failed to update background color');
+      console.error("Failed to update background color", error);
+      Alert.alert("Error", "Could not update background color.");
+    } finally {
+      await session.close();
     }
   };
 
-  const handleDelete = async () => {
-    Alert.alert(
-      'Confirm Delete',
-      'Are you sure you want to delete your account? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove([
-                'email',
-                'password',
-                'userName',
-                'backgroundColor',
-              ]);
-              router.push('/');
-            } catch (error) {
-              console.error('Failed to remove user data', error);
-              Alert.alert('Error', 'Failed to delete account');
-            }
-          },
-        },
-      ]
-    );
+  const navigateToParentalPortal = () => {
+    router.push('/parentalPortal/parentalPortal');
   };
 
-  // Rest of the component remains the same...
-  const HomeIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M5 12l-2 0l9 -9l9 9l-2 0" />
-      <Path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
-      <Path d="M10 12h4v4h-4z" />
-    </Svg>
-  );
+  const navigateToHomePage = () => {
+    router.push('/homePage');
+  };
 
-  const LogoutIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" />
-      <Path d="M15 12h-12l3 -3" />
-      <Path d="M6 15l-3 -3" />
-    </Svg>
-  );
+  // Handle Logout
+  const handleLogout = async () => {
+    const session = driver.session();
+    try {
+      await session.run(
+        `MATCH (u:User {sessionToken: $token})
+         REMOVE u.sessionToken`,
+        { token: sessionToken }
+      );
 
-  const DeleteIcon = () => (
-    <Svg width={24} height={24} viewBox="0 0 24 24" stroke="white" strokeWidth={2} fill="none">
-      <Path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-      <Path d="M9 12l6 0" />
-    </Svg>
-  );
+      console.log("User logged out.");
+      setSessionToken(null); // Clear session token in memory
+      router.push("/");
+    } catch (error) {
+      console.error("Failed to log out user", error);
+    } finally {
+      await session.close();
+    }
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor }]}>
       <View style={styles.profileContainer}>
-        <Text style={styles.title}>User Profile</Text>
+
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
+        {/* Title */}
+        <Text style={styles.title}>Profile</Text>
 
         {/* User Info Section */}
         <View style={styles.userInfo}>
           <Text style={styles.infoText}>
             <Text style={styles.bold}>Name: </Text>
-            {userName}
+            {userInfo.name}
           </Text>
           <Text style={styles.infoText}>
             <Text style={styles.bold}>Email: </Text>
             {userInfo.email}
           </Text>
-          
-          <View style={styles.statsContainer}>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>Coins: </Text>
+            {userInfo.coins}
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>Streak: </Text>
+            {userInfo.streak}
+          </Text>
+          <Text style={styles.infoText}>
+            <Text style={styles.bold}>EXP: </Text>
+            {userInfo.exp}
+          </Text>
+          {allowAddViewFriends && (
             <Text style={styles.infoText}>
-              <Text style={styles.bold}>Coins: </Text>
-              {userInfo.coins}
+              <Text style={styles.bold}>Friend Code: </Text>
+              {userInfo.friendCode}
             </Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Streak: </Text>
-              {userInfo.streak}
-            </Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>EXP: </Text>
-              {userInfo.exp}
-            </Text>
-          </View>
+          )}
         </View>
 
-        {/* Avatar Edit Section */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Edit Avatar Name:</Text>
+        <View style={styles.centeredSection}>
+          <Text style={styles.label}>Update Name:</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter new avatar name"
-            value={avatarName}
-            onChangeText={setAvatarName}
+            placeholder="Enter new name"
+            keyboardType="default"
+            value={userName}
+            onChangeText={setUserName}
           />
-          <TouchableOpacity style={styles.button} onPress={updateAvatarName}>
-            <Text style={styles.buttonText}>Update Avatar Name</Text>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor)}]}
+            onPress={updateUserName}
+          >
+            <Text style={styles.buttonText}>Update Name</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Background Color Section */}
+        <View style={styles.centeredSection}>
+          <Text style={{ ...styles.label, marginTop: 20 }}>Update Email:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter new email"
+            keyboardType="email-address"
+            value={newEmail}
+            onChangeText={setNewEmail}
+          />
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
+            onPress={updateUserEmail}
+          >
+            <Text style={styles.buttonText}>Update Email</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Update Background Color Section */}
         <View style={styles.section}>
-          <Text style={styles.label}>Choose Background Color:</Text>
+          <Text style={{ ...styles.label, marginTop: 40 }}>Background Color:</Text>
           <View style={styles.colorButtons}>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#99CA9C' }]}
-              onPress={() => changeBackgroundColor('#99CA9C')}>
+              style={[styles.colorButton, { backgroundColor: "#99CA9C"}]}
+              onPress={() => updateBackgroundColor("#99CA9C")}
+            >
               <Text style={styles.buttonText}>Green</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#9FDDF9' }]}
-              onPress={() => changeBackgroundColor('#9FDDF9')}>
+              style={[styles.colorButton, { backgroundColor: "#9FDDF9" }]}
+              onPress={() => updateBackgroundColor("#9FDDF9")}
+            >
               <Text style={styles.buttonText}>Blue</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.colorButton, { backgroundColor: '#FAC1BE' }]}
-              onPress={() => changeBackgroundColor('#FAC1BE')}>
+              style={[styles.colorButton, { backgroundColor: "#FAC1BE" }]}
+              onPress={() => updateBackgroundColor("#FAC1BE")}
+            >
               <Text style={styles.buttonText}>Pink</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Navigation Buttons */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('../parentalPortal/parentalPortal')}>
-          <Text style={styles.buttonText}>Parental Controls</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('../homePage')}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Back</Text>
-            <HomeIcon />
+        {/* Allow user to select a new avatar */}
+        <View style={styles.container}>
+          <Text style={styles.avatarTitle}>Select a new avatar</Text>
+          <View style={styles.avatarContainer}>
+            {avatar_list.map(avatar => (
+              <TouchableOpacity key={avatar.avatar_id} onPress={() => handleAvatarSelect(avatar.avatar_id)}>
+                <Image
+                  source={avatar.avatar_image}
+                  style={[
+                    styles.avatar,
+                    selectedAvatar === avatar.avatar_id && styles.selectedAvatar
+                  ]}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ))}
           </View>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={logOut}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Log Out</Text>
-            <LogoutIcon />
-          </View>
-        </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            {/* Button to navigate to parental portal */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToParentalPortal}>
+              <Text style={styles.buttonText}>Go to Parental Portal</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleDelete}>
-          <View style={styles.buttonContent}>
-            <Text style={styles.buttonText}>Delete</Text>
-            <DeleteIcon />
+            {/* Back Button */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={navigateToHomePage}>
+              <Text style={styles.buttonText}>Back</Text>
+            </TouchableOpacity>
+
+            {/* Logout Button */}
+            <TouchableOpacity style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Log Out</Text>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );

@@ -1,4 +1,7 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Dimensions, Platform } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -20,11 +23,32 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  logoContainer: {
+    width: '100%',
+    height: windowHeight * 0.15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  logo: {
+    width: windowWidth * 0.8,
+    height: '100%',
+    maxHeight: 100,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
+    marginBottom: 20,
+    marginTop: -50,
+  },
+  avatarTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
   userInfo: {
@@ -37,7 +61,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 20,
     marginVertical: 5,
     textAlign: 'center',
   },
@@ -48,18 +72,9 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 8,
     textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    width: '100%',
-    backgroundColor: '#fff',
   },
   colorButtons: {
     flexDirection: 'row',
@@ -67,13 +82,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   colorButton: {
-    backgroundColor: '#4CAF50',
     padding: 12,
     borderRadius: 8,
     marginVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#333',
     width: 100,
     shadowColor: '#000',
@@ -89,7 +103,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     padding: 12,
     borderRadius: 8,
-    marginVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -99,9 +112,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#000',
+    fontSize: 18,
     marginRight: 8,
+    fontWeight: 'bold',
+  },
+  avatarContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 45,
+    margin: 10,
+    marginBottom: 20,
+  },
+  selectedAvatar: {
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  centeredSection: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+    width: "20%", 
+    backgroundColor: "#fff",
+  },
+  buttonContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  button: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#007BFF',
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 3,
+    width: 225,
   },
 });
 

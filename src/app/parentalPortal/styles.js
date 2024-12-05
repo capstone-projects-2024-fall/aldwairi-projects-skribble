@@ -1,16 +1,33 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        padding: 70,
+        paddingRight: 80,
+    },
+    logoContainer: {
+        width: '100%',
+        height: windowHeight * 0.15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 10,
+    },
+     logo: {
+        width: windowWidth * 0.8,
+        height: '100%',
+        maxHeight: 100,
     },
     title: {
-        fontSize: 24,
+        fontSize: 36,
         fontWeight: 'bold',
         textAlign: 'center',
         marginVertical: 20,
         color: '#333',
+        marginTop: -30,
     },
     section: {
         marginBottom: 30,
@@ -22,14 +39,14 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     currentEmail: {
-        fontSize: 16,
+        fontSize: 18,
         marginBottom: 10,
     },
     bold: {
         fontWeight: 'bold',
     },
     label: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '500',
         marginBottom: 5,
     },
@@ -53,9 +70,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     button: {
-        backgroundColor: '#2196F3',
         padding: 15,
         borderRadius: 8,
+        borderWidth: 3,
+        width: 200,
         alignItems: 'center',
         marginVertical: 10,
         ...Platform.select({
@@ -71,8 +89,9 @@ const styles = StyleSheet.create({
         }),
     },
     buttonText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#000',
+        fontWeight: 'bold',
+        fontSize: 18,
         fontWeight: '600',
     },
     controlItem: {
@@ -83,8 +102,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
     },
     backButton: {
-        backgroundColor: '#4CAF50',
-        marginTop: 20,
+        width: 75,
     },
 });
 

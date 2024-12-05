@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import styles from './styles';
 import { 
   View, 
@@ -8,70 +8,128 @@ import {
   StyleSheet, 
   Switch,
   ScrollView,
-  Platform 
+  Platform,
+  Image,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import neo4j from 'neo4j-driver';
+import { logo_list } from '../../assets/logos/logosAssets';
+import createNeo4jDriver from '../utils/databaseSetUp';
+import { getDarkerShade } from '../utils/colorUtils';
+import { AuthContext } from "../AuthContext"; 
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
 
+    // Set up the Neo4j driver
+    const driver = createNeo4jDriver();
+
     // Initial state setup with default values
-    const [email, setEmail] = useState('parent@example.com');
     const [newEmail, setNewEmail] = useState('');
-    const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
-    const [enableChat, setEnableChat] = useState(true);
-    const [allowMediaSharing, setAllowMediaSharing] = useState(true);
+    const [allowAddViewFriends, setAllowAddViewFriends] = useState(false);
+    const [enableChat, setEnableChat] = useState(false);
+    const [allowMediaSharing, setAllowMediaSharing] = useState(false);
     const [timeLimit, setTimeLimit] = useState('2'); // Changed to string for TextInput
     const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
+    const { setSessionToken, sessionToken } = useContext(AuthContext);
+    const [parentInfo, setParentInfo] = useState({
+        email: ""
+      });
 
-    // Use Effect to load saved settings from AsyncStorage
+    // Use Effect to load saved settings from Neo4j
     useEffect(() => {
         const loadSettings = async () => {
+            const session = driver.session();
             try {
-                const savedEmail = await AsyncStorage.getItem('email');
-                const savedAllowAddViewFriends = await AsyncStorage.getItem('allowAddViewFriends');
-                const savedEnableChat = await AsyncStorage.getItem('enableChat');
-                const savedAllowMediaSharing = await AsyncStorage.getItem('allowMediaSharing');
-                const savedTimeLimit = await AsyncStorage.getItem('timeLimit');
-                const savedBackgroundColor = await AsyncStorage.getItem('backgroundColor');
+                const result = await session.run(
+                    `MATCH (u:User {sessionToken: $sessionToken})
+                     RETURN u.parentEmail AS parentEmail,
+                            u.allowAddViewFriends AS allowAddViewFriends, 
+                            u.enableChat AS enableChat, 
+                            u.allowMediaSharing AS allowMediaSharing, 
+                            u.timeLimit AS timeLimit, 
+                            u.backgroundColor AS backgroundColor`,
+                    { sessionToken }
+                );
 
-                if (savedEmail) setEmail(savedEmail);
-                if (savedAllowAddViewFriends !== null) setAllowAddViewFriends(JSON.parse(savedAllowAddViewFriends));
-                if (savedEnableChat !== null) setEnableChat(JSON.parse(savedEnableChat));
-                if (savedAllowMediaSharing !== null) setAllowMediaSharing(JSON.parse(savedAllowMediaSharing));
-                if (savedTimeLimit) setTimeLimit(savedTimeLimit);
-                if (savedBackgroundColor) setBackgroundColor(savedBackgroundColor);
+                if (result.records.length > 0) {;
+                    const record = result.records[0];
+                    const backgroundColor = record.get("backgroundColor");
+                    const parentEmail = record.get('parentEmail');
+                    setNewEmail(parentEmail);
+                    setAllowAddViewFriends(record.get('allowAddViewFriends'));
+                    setEnableChat(record.get('enableChat'));
+                    setAllowMediaSharing(record.get('allowMediaSharing'));
+                    setTimeLimit(record.get('timeLimit'));
+                    setBackgroundColor(backgroundColor);
+                    setParentInfo({
+                        email: parentEmail
+                    })
+                }
             } catch (error) {
-                console.error('Failed to load settings from AsyncStorage:', error);
+                console.error('Failed to load settings from Neo4j:', error);
+            } finally {
+                await session.close();
             }
         };
 
         loadSettings();
-    }, []);
+    }, [sessionToken]);
 
     // Change the email address
-    const changeEmail = () => {
-        if (newEmail) {
-            setEmail(newEmail);
-            setNewEmail('');
-            console.log(`Email changed to: ${newEmail}`);
+    const changeEmail = async () => {
+        if (!newEmail.trim()) {
+            Alert.alert("Error", "Email cannot be empty.");
+            return;
+        }
+
+        const session = driver.session();
+        try {
+            const result = await session.run(
+                `
+                MATCH (u:User {sessionToken: $sessionToken})
+                SET u.parentEmail = $newEmail
+                RETURN u.parentEmail AS updatedEmail
+                `,
+                { sessionToken, newEmail }
+            );
+
+            if (result.records.length > 0) {
+                const updatedEmail = result.records[0].get("updatedEmail");
+                setParentInfo({ email: updatedEmail });
+                setNewEmail(""); // Clear input
+                Alert.alert("Success", "Email updated successfully.");
+            } else {
+                Alert.alert("Error", "Failed to update email. User not found.");
+            }
+        } catch (error) {
+            console.error("Failed to update email", error);
+            Alert.alert("Error", "Could not update email. Please try again.");
+        } finally {
+            await session.close();
         }
     };
 
     // Save all settings
     const saveControls = async () => {
+        const session = driver.session();
         try {
-            await AsyncStorage.setItem('email', email);
-            await AsyncStorage.setItem('allowAddViewFriends', JSON.stringify(allowAddViewFriends));
-            await AsyncStorage.setItem('enableChat', JSON.stringify(enableChat));
-            await AsyncStorage.setItem('allowMediaSharing', JSON.stringify(allowMediaSharing));
-            await AsyncStorage.setItem('timeLimit', timeLimit);
-            await AsyncStorage.setItem('backgroundColor', backgroundColor);
+            await session.run(
+                `MATCH (u:User {sessionToken: $sessionToken})
+                 SET u.allowAddViewFriends = $allowAddViewFriends, 
+                     u.enableChat = $enableChat, 
+                     u.allowMediaSharing = $allowMediaSharing, 
+                     u.timeLimit = $timeLimit, 
+                     u.backgroundColor = $backgroundColor`,
+                { sessionToken, allowAddViewFriends, enableChat, allowMediaSharing, timeLimit, backgroundColor }
+            );
 
             console.log('Parental controls saved');
         } catch (error) {
-            console.error('Failed to save settings to AsyncStorage:', error);
+            console.error('Failed to save settings to Neo4j:', error);
+        } finally {
+            await session.close();
         }
     };
 
@@ -82,13 +140,23 @@ const ParentalControlPanel: React.FC = () => {
 
     return (
         <ScrollView style={[styles.container, { backgroundColor }]}>
-            <Text style={styles.title}>Parental Control Panel</Text>
+            {/* Logo */}
+            <View style={styles.logoContainer}>
+                <Image
+                source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
+                style={styles.logo}
+                resizeMode="contain"
+                />
+            </View>
+
+            {/* Title */}
+            <Text style={styles.title}>Parental Controls</Text>
 
             {/* Email Section */}
             <View style={styles.section}>
                 <Text style={styles.currentEmail}>
                     <Text style={styles.bold}>Current Email: </Text>
-                    {email}
+                    {parentInfo.email}
                 </Text>
                 <Text style={styles.label}>Change Email:</Text>
                 <TextInput
@@ -100,7 +168,7 @@ const ParentalControlPanel: React.FC = () => {
                     autoCapitalize="none"
                 />
                 <TouchableOpacity 
-                    style={styles.button}
+                    style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={changeEmail}
                 >
                     <Text style={styles.buttonText}>Change Email</Text>
@@ -157,7 +225,7 @@ const ParentalControlPanel: React.FC = () => {
                 </View>
 
                 <TouchableOpacity 
-                    style={styles.button}
+                    style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={saveControls}
                 >
                     <Text style={styles.buttonText}>Save Settings</Text>
@@ -166,7 +234,7 @@ const ParentalControlPanel: React.FC = () => {
 
             {/* Back Button */}
             <TouchableOpacity 
-                style={[styles.button, styles.backButton]}
+                style={[styles.button, styles.backButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                 onPress={goToProfilePage}
             >
                 <Text style={styles.buttonText}>Back</Text>
