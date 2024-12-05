@@ -16,6 +16,7 @@ export default function LogIn() {
   const [isSignUp, setIsSignUp] = useState(true);
   const [error, setError] = useState(""); // State for error message
   const { setSessionToken } = useContext(AuthContext);
+  const [petID, setPetID] = useState("");
 
   const router = useRouter();
 
@@ -36,6 +37,19 @@ export default function LogIn() {
         return;
       }
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError("Please enter a valid email address.");
+        return;
+      }
+
+      // generate unique petID
+      const generatedPetID = uuid.v4();
+      setPetID(generatedPetID);
+      const petName = "Benny";
+      console.log("Generated Pet ID:", generatedPetID);
+      
+
       const birthDate = new Date(birthday);
       const age = new Date().getFullYear() - birthDate.getFullYear();
       const needsParentalControls = age < 13;
@@ -52,7 +66,9 @@ export default function LogIn() {
 
       try {
         // Create a new user or ensure the user exists
+        // create a pet for the user and link them
         const sessionToken = uuid.v4(); 
+        const friendCode = uuid.v4();
         setSessionToken(sessionToken);
         const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
         const result = await session.run(
@@ -63,18 +79,26 @@ export default function LogIn() {
              u.streak = 0,
              u.coins = 100,
              u.exp = 0,
-             u.backgroundColor = '#FFFFFF',
+             u.backgroundColor = '#99CA9C',
              u.birthday = $birthday,
              u.parentEmail = $parentEmail,
              u.needsParentalControls = $needsParentalControls,
              u.sessionToken = $sessionToken,
              u.enableChat = $enableChat, 
              u.allowMediaSharing = $allowMediaSharing, 
-             u.timeLimit = $timeLimit,
-             u.allowAddViewFriends = $allowAddViewFriends
-             u.avatarImage = $defaultAvatar
-           RETURN u`,
-          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar }
+             u.timeLimit = 2,
+             u.allowAddViewFriends = $allowAddViewFriends,
+             u.avatarImage = '1',
+             u.friendCode = $friendCode
+           WITH u
+           MERGE (p:pet {petID: $petID})
+           ON CREATE SET
+             p.petName = $petName,
+             p.petPNG = $defaultAvatar  
+           MERGE (u)-[:HAS_PET]->(p)
+           RETURN u, p`,
+           
+          { email, password, name: "New User", birthday, parentEmail, needsParentalControls, sessionToken, enableChat, allowAddViewFriends, allowMediaSharing, timeLimit, defaultAvatar, friendCode, petID, petName  }
         );
 
         if (result.summary.counters.containsUpdates()) {

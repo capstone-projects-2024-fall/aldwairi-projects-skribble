@@ -4,6 +4,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Dimensions, 
 import Svg, { Path } from 'react-native-svg';
 import styles from './homePageStyles';
 import { avatar_list } from '../assets/avatars/avatarAssets';
+import { clothes_list } from '../assets/clothing/clothingAssets';
 import createNeo4jDriver from './utils/databaseSetUp';
 import { getDarkerShade } from './utils/colorUtils';
 import { AuthContext } from "./AuthContext";
@@ -12,6 +13,7 @@ const HomePage: React.FC = () => {
   const router = useRouter();
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const [wornItems, setWornItems] = useState<any[]>([]);
   const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
   const [enableChat, setEnableChat] = useState(true);
   const { sessionToken } = useContext(AuthContext);
@@ -20,15 +22,18 @@ const HomePage: React.FC = () => {
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
+  // load user data
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session();
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})
+           OPTIONAL MATCH (u)-[:WEARS]->(w:Item)
            RETURN 
             u.backgroundColor AS backgroundColor, 
             u.avatarImage AS avatarImage, 
+            collect(w.item_id) AS wornItems,
             u.enableChat AS enableChat,
             u.allowAddViewFriends AS allowAddViewFriends`,
           { sessionToken }
@@ -39,13 +44,15 @@ const HomePage: React.FC = () => {
           // Extract values from the result, handling the INTEGER type if necessary
           const backgroundColor = record.get("backgroundColor");
           const avatarImage = record.get("avatarImage");
+          const wornItems = record.get("wornItems");
           const enableChat = record.get("enableChat");
           const allowAddViewFriends = record.get("allowAddViewFriends");
 
-          console.log("User properties:", { backgroundColor, avatarImage, enableChat, allowAddViewFriends }); // Debugging
+          console.log("User properties:", { backgroundColor, avatarImage, wornItems, enableChat, allowAddViewFriends }); // Debugging
 
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
+          setWornItems(wornItems);
           setAllowAddViewFriends(allowAddViewFriends);
           setEnableChat(enableChat);
         } else {
@@ -81,6 +88,8 @@ const HomePage: React.FC = () => {
   };
 
   const logoDimensions = getLogoDimensions();
+  
+  const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
 
   return (
     <View style={[styles.homeContainer, { backgroundColor }]}>
@@ -101,6 +110,14 @@ const HomePage: React.FC = () => {
           style={{ width: 250, height: 250 }}
           resizeMode="contain"
         />
+        {wornItemsDetails.map(item => (
+          <Image
+            key={item._id}
+            source={item.image}
+            style={styles.wornItem}
+            resizeMode="contain"
+          />
+        ))}
       </View>
 
       <View style={styles.buttonContainer}>

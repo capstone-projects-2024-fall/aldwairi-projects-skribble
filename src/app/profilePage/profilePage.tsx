@@ -28,9 +28,11 @@ const ProfilePage: React.FC = () => {
     coins: 0,
     streak: 0,
     exp: 0,
+    friendCode: "",
   });
   const [newEmail, setNewEmail] = useState("");
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [allowAddViewFriends, setAllowAddViewFriends] = useState(true);
   const router = useRouter();
 
   // Set up the Neo4j driver
@@ -43,7 +45,15 @@ const ProfilePage: React.FC = () => {
       try {
         const result = await session.run(
           `MATCH (u:User {sessionToken: $sessionToken})
-           RETURN u.email AS email, u.coins AS coins, u.streak AS streak, u.exp AS exp, u.name AS name, u.backgroundColor AS backgroundColor, u.avatarImage AS avatarImage`,
+           RETURN u.email AS email, 
+                  u.coins AS coins, 
+                  u.streak AS streak, 
+                  u.exp AS exp, 
+                  u.name AS name, 
+                  u.backgroundColor AS backgroundColor, 
+                  u.friendCode as friendCode,
+                  u.avatarImage AS avatarImage,
+                  u.allowAddViewFriends AS allowAddViewFriends`,
           { sessionToken }
         );
 
@@ -59,9 +69,11 @@ const ProfilePage: React.FC = () => {
           const exp = record.get("exp")?.low || 0;  // Same for exp
           const name = record.get("name");
           const backgroundColor = record.get("backgroundColor");
+          const friendCode = record.get("friendCode");
           const avatarImage = record.get("avatarImage");
+          const allowAddViewFriends = record.get("allowAddViewFriends");
 
-          console.log("User properties:", { email, coins, streak, exp, name, backgroundColor, avatarImage }); // Debugging
+          console.log("User properties:", { email, coins, streak, exp, name, backgroundColor, avatarImage, friendCode, allowAddViewFriends}); // Debugging
 
           setUserInfo({
             name,
@@ -69,11 +81,13 @@ const ProfilePage: React.FC = () => {
             coins,
             streak,
             exp,
+            friendCode
           });
           setUserName(name || "Unnamed User");
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
           setSelectedAvatar(avatarImage || avatar_list[0].avatar_image);
+          setAllowAddViewFriends(allowAddViewFriends);
         } else {
           Alert.alert("Error", "User not found.");
         }
@@ -268,6 +282,12 @@ const ProfilePage: React.FC = () => {
             <Text style={styles.bold}>EXP: </Text>
             {userInfo.exp}
           </Text>
+          {allowAddViewFriends && (
+            <Text style={styles.infoText}>
+              <Text style={styles.bold}>Friend Code: </Text>
+              {userInfo.friendCode}
+            </Text>
+          )}
         </View>
 
         <View style={styles.centeredSection}>

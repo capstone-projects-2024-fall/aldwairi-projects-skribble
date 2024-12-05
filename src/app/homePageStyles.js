@@ -23,6 +23,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  wornItem: {
+    position: 'absolute',
+    top: 0,
+    width: 250,
+    height: 250,
+  },
   buttonContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
