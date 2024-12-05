@@ -78,10 +78,10 @@ const FriendsPage = () => {
           );
 
           const friends = friendsResult.records.map(record => ({
-            id: record.get("friendCode"), // Assuming friendCode is unique
+            id: record.get("friendCode"), 
             name: record.get("name"),
             avatar: record.get("avatarImage"),
-            clothes: [], // You can load clothes details similarly if needed
+            clothes: [], 
             friendCode: record.get("friendCode")
           }));
           
