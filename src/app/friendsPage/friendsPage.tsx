@@ -32,16 +32,8 @@ const FriendsPage = () => {
     clothes: any[];
     friendCode: string;
   }
-  interface FriendRequest {
-    id: number;
-    name: string;
-    avatar: any;
-    clothes: any[];
-    friendCode: string;
-  }
 
   const [friendsList, setFriendsList] = useState<Friend[]>([]);
-  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
 
   const router = useRouter();
 
@@ -134,19 +126,19 @@ const FriendsPage = () => {
         // Create a friend request relationship in the database
         await session.run(
           `MATCH (u:User {sessionToken: $sessionToken}), (f:User {friendCode: $friendRequestCode})
-          MERGE (u)-[:SENT_FRIEND_REQUEST]->(f)`,
+          MERGE (u)-[:FRIENDS_WITH]->(f)`,
           { sessionToken, friendRequestCode }
         );
   
-        const newRequest = {
-          id: friendRequests.length + 1,
+        const newFriend = {
+          id: friendsList.length + 1,
           name: friendName,
           avatar: friendAvatar, 
           clothes: clothes,
           friendCode: friendRequestCode
         };
   
-        setFriendRequests([...friendRequests, newRequest]);
+        setFriendsList([...friendsList, newFriend]);
         setFriendRequestCode('');
         setFriendRequestModal(false);
         Alert.alert('Success', `Friend request sent to ${friendName}`);
@@ -160,34 +152,6 @@ const FriendsPage = () => {
     } finally {
       await session.close();
     }
-  };
-
-  const acceptFriendRequest = async (request: FriendRequest) => {
-    const session = driver.session();
-    try {
-      await session.run(
-        `MATCH (u:User {sessionToken: $sessionToken}), (f:User {friendCode: $friendCode})
-         MERGE (u)-[:FRIENDS_WITH]->(f)`,
-        { sessionToken, friendCode: request.friendCode }
-      );
-
-      const updatedRequests = friendRequests.filter(r => r.id !== request.id);
-      const updatedFriendsList = [...friendsList, request];
-      setFriendRequests(updatedRequests);
-      setFriendsList(updatedFriendsList);
-      Alert.alert('Success', `${request.name} is now your friend!`);
-    } catch (error) {
-      console.error("Failed to accept friend request", error);
-      Alert.alert("Error", "Could not accept friend request. Please try again.");
-    } finally {
-      await session.close();
-    }
-  };
-
-  const rejectFriendRequest = (request: FriendRequest) => {
-    const updatedRequests = friendRequests.filter(r => r.id !== request.id);
-    setFriendRequests(updatedRequests);
-    Alert.alert('Notification', `Friend request from ${request.name} has been rejected`);
   };
 
   const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
@@ -230,58 +194,6 @@ const FriendsPage = () => {
           {item.name}
         </Text>
       </TouchableOpacity>
-    );
-  };
-
-  const renderFriendRequests = ({ item }: { item: FriendRequest }) => {
-    const screenWidth = Dimensions.get('window').width;
-
-    // Responsive sizing for request items
-    const avatarSize = Platform.select({
-      web: screenWidth / 6, // Larger on web
-      default: screenWidth / 4 // Larger on mobile
-    });
-
-    return (
-      <View style={[styles.friendRequestItem, { backgroundColor, width: '100%' }]}>
-        <View style={[styles.friendRequestAvatarContainer, { width: avatarSize, height: avatarSize }]}>
-        <Image
-          source={avatar_list.find(avatar => avatar.avatar_id === item.avatar)?.avatar_image}
-          style={[styles.friendRequestAvatar, { width: '100%', height: '100%' }]}
-          resizeMode="contain"
-        />
-          {wornItemsDetails.map(item => (
-          <Image
-            key={item._id}
-            source={item.image}
-            style={styles.wornItem}
-            resizeMode="contain"
-          />
-        ))}
-        </View>
-        <View style={styles.friendRequestTextContainer}>
-          <Text style={styles.friendRequestName}>
-            {item.name}
-          </Text>
-          <Text style={styles.friendRequestMessage}>
-            Wants to be your friend
-          </Text>
-        </View>
-        <View style={styles.friendRequestButtonsContainer}>
-          <TouchableOpacity
-            onPress={() => rejectFriendRequest(item)}
-            style={[styles.rejectButton, { borderWidth: 3, backgroundColor: '#FFF' }]}
-          >
-            <Text style={[styles.rejectButtonText, { fontWeight: 'bold' }]}>Reject</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => acceptFriendRequest(item)}
-            style={[styles.acceptButton, { borderWidth: 3, backgroundColor: '#FFF' }]}
-          >
-            <Text style={{ ...styles.acceptButtonText, fontWeight: 'bold' }}>Accept</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     );
   };
 
@@ -398,39 +310,6 @@ const FriendsPage = () => {
               activeTab === 'friends' && styles.activeTabButtonText,
             ]}>My Friends</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'requests' && styles.activeTabButton,
-            ]}
-            onPress={() => setActiveTab('requests')}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[
-                styles.tabButtonText,
-                activeTab === 'requests' && styles.activeTabButtonText,
-              ]}>Requests</Text>
-              {friendRequests.length > 0 && (
-                <View style={{
-                  backgroundColor: 'red',
-                  borderRadius: 10,
-                  width: 20,
-                  height: 20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginLeft: 5
-                }}>
-                  <Text style={{
-                    color: 'white',
-                    fontSize: 12,
-                    fontWeight: 'bold'
-                  }}>
-                    {friendRequests.length}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
@@ -443,37 +322,26 @@ const FriendsPage = () => {
           />
         </View>
 
-        {/* Friends or Requests List */}
-        {activeTab === 'friends' ? (
-          <FlatList
-            data={friendsList.filter(friend =>
-              friend.name.toLowerCase().includes(searchQuery.toLowerCase())
-            )}
-            renderItem={renderFriendGridItem}
-            keyExtractor={item => item.id.toString()}
-            numColumns={Platform.select({
-              web: 3,
-              default: 2
-            })}
-            key={Platform.select({
-              web: 3,
-              default: 2
-            })}
-            contentContainerStyle={{
-              paddingHorizontal: 10,
-              paddingBottom: 20
-            }}
-          />
-        ) : (
-          <FlatList
-            data={friendRequests}
-            renderItem={renderFriendRequests}
-            keyExtractor={item => item.id.toString()}
-            contentContainerStyle={{
-              width: '100%'
-            }}
-          />
-        )}
+        {/* Friends List */}
+        <FlatList
+          data={friendsList.filter(friend =>
+            friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )}
+          renderItem={renderFriendGridItem}
+          keyExtractor={item => item.id.toString()}
+          numColumns={Platform.select({
+            web: 3,
+            default: 2
+          })}
+          key={Platform.select({
+            web: 3,
+            default: 2
+          })}
+          contentContainerStyle={{
+            paddingHorizontal: 10,
+            paddingBottom: 20
+          }}
+        />
 
         {/* Friend Request Modal */}
         <Modal
