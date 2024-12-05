@@ -215,7 +215,7 @@ const JournalPage: React.FC = () => {
     }
 
     const newEntry: JournalEntry = {
-      entryID: currentEntry.entryID,
+      entryID: 0,
       title: currentEntry.title,
       content: currentEntry.content,
       date: new Date().toISOString(),
@@ -224,7 +224,7 @@ const JournalPage: React.FC = () => {
 
     const session = driver.session();
     try {
-      await session.run(
+      const result = await session.run(
         `
         MATCH (u:User {sessionToken: $sessionToken})
         CREATE (j:Journal {
@@ -235,6 +235,7 @@ const JournalPage: React.FC = () => {
           imageIndex: $imageIndex
         })
         MERGE (u)-[:HAS_ENTRY]->(j)
+        RETURN j.entryID AS entryID
         `,
         {
           sessionToken,
@@ -245,6 +246,14 @@ const JournalPage: React.FC = () => {
         }
       );
 
+      // Retrieve the generated entryID
+      const entryID = result.records[0].get('entryID');
+      const savedEntry = {
+        ...newEntry,
+        entryID, // Assign the generated entryID
+      };
+
+      setEntries([savedEntry, ...entries]);
       setEntries([newEntry, ...entries]);
       setIsFormVisible(false);
       setSelectedPrompt(null);
@@ -278,6 +287,10 @@ const JournalPage: React.FC = () => {
   };
 
   const handleDeleteEntry = async () => {
+    if (currentDeleteIndex !== null) {
+      console.log('Current delete index:', currentDeleteIndex);
+      console.log('Entry to delete:', entries[currentDeleteIndex]);}
+
     if (currentDeleteIndex !== null) {
       const entryToDelete = entries[currentDeleteIndex];
       const session = driver.session();
