@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
    textAlign: 'center',
    fontSize: responsiveSize(24, 30),
    fontWeight: 'bold',
-   color: 'white',
+   color: '#000',
    marginVertical: responsiveSize(5, 10),
    marginBottom: responsiveSize(10, 20),
    marginTop: Platform.select({
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
    flex: 1,
    backgroundColor: '#5C2E00',
    borderWidth: responsiveSize(4, 6),
+   borderRadius: 10,
  },
  categoryContainer: {
    flexDirection: 'row',
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
    justifyContent: 'space-around',
    marginBottom: responsiveSize(10, 20),
    borderBottomWidth: responsiveSize(4, 6),
+   borderRadius: 10,
  },
  categoryImage: {
    width: responsiveSize(70, 100),
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
    fontSize: responsiveSize(12, 16),
    fontWeight: 'bold',
    marginBottom: responsiveSize(10, 15),
-   color: 'white',
+   color: '#000',
  },
  itemsContainer: {
    paddingLeft: responsiveSize(10, 20),
