@@ -69,6 +69,23 @@ const FriendsPage = () => {
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
           setFriendCode(friendCode);
+
+          // Load friends list
+          const friendsResult = await session.run(
+            `MATCH (u:User {sessionToken: $sessionToken})-[:FRIENDS_WITH]->(f:User)
+            RETURN f.name AS name, f.avatarImage AS avatarImage, f.friendCode AS friendCode`,
+            { sessionToken }
+          );
+
+          const friends = friendsResult.records.map(record => ({
+            id: record.get("friendCode"), // Assuming friendCode is unique
+            name: record.get("name"),
+            avatar: record.get("avatarImage"),
+            clothes: [], // You can load clothes details similarly if needed
+            friendCode: record.get("friendCode")
+          }));
+          
+          setFriendsList(friends);
         } else {
           Alert.alert("Error", "User not found.");
         }
