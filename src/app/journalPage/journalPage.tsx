@@ -12,7 +12,6 @@ import {
   Alert,
   Animated
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { avatar_list } from '../../assets/avatars/avatarAssets';
 import { useRouter } from "expo-router";
 import createNeo4jDriver from '../utils/databaseSetUp';
