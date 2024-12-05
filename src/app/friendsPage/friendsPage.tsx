@@ -226,7 +226,7 @@ const FriendsPage = () => {
           />
         ))}
         </View>
-        <Text style={styles.friendGridItemText}>
+        <Text style={[styles.friendGridItemText, { fontSize: 24 }]}>
           {item.name}
         </Text>
       </TouchableOpacity>
@@ -354,7 +354,7 @@ const FriendsPage = () => {
               />
             ))}
           </View>
-          <Text style={styles.friendProfileName}>{selectedFriend.name}</Text>
+          <Text style={[styles.friendProfileName, { fontSize: 24 }]}>{selectedFriend.name}</Text>
         </View>
       </View>
     );

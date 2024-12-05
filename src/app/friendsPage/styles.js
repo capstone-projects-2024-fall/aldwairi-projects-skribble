@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   headerButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     marginRight: 15,
     color: '#000',
     fontWeight: 'bold',
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   addFriendButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
     fontWeight: 'bold',
     marginLeft: 10,
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   tabButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
   },
   activeTabButtonText: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     height: 40,
-    fontSize: 16,
+    fontSize: 18,
   },
   friendGridItem: {
     margin: 10,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   friendGridItemText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   friendProfileBackButton: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
   },
   friendProfileHeaderText: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   friendProfileRemoveButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
   },
   friendProfileImageContainer: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   friendProfileName: {
     marginTop: 10,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   friendRequestItem: {
@@ -165,11 +165,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   friendRequestName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   friendRequestMessage: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   friendRequestButtonsContainer: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   rejectButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   acceptButton: {
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   acceptButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   modalContainer: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   modalCancelButtonText: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   modalSendButton: {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   modalSendButtonText: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
   },
   wornItem: {
