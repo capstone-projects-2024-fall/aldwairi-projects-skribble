@@ -1,4 +1,4 @@
-import {Encryption} from './Encryption';
+import {Encryption} from '@/encryption/Encryption';
 import CryptoJS from "crypto-js";
 
 describe('Encryption', () => {

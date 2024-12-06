@@ -1,4 +1,4 @@
-import {logOut} from './logOut';
+import {logOut} from '@/app/logOut';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {router} from 'expo-router';
 
