@@ -1,54 +1,44 @@
    # aldwairi-projects-skribble
 # Welcome to Skribble - Your Child's Journaling Needs👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Skribble is a journaling app geared towards kids aged 6-12, with the goal of establishing self-care habits and an open inner dialogue at a young age to counteract the negative impact of social media on youth. 
 
-## Get started
+## How To Run
 
-1. Install dependencies
+- Download the latest version of [Node.js](https://nodejs.org/en). Node.js includes the package manager npm, which we'll use later to help with installing our needed dependencies (things our program needs to run).
+- Click the green box labeled 'Code', then copy the link under 'HTTPS' by clicking the clipboard icon. 
+- Open your preferred Javascript IDE of choice ([VSCode](https://code.visualstudio.com/) is our recommendation). Type in terminal:
+    ```
+    git clone {your url}
+    ```
+    to clone the current release to your local repository.
 
-   ```bash
+1. Install dependencies by typing in terminal:
+
+   ```
    npm install
    npm install react-native-svg
    npm install react-native-uuid
+   npm install expo
+   npx expo install expo@^51
    ```
+   
+2. Start the app by typing in terminal:
 
-2. Start the app
-
-   ```bash
+   ```
     cd src
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+In the output, you'll find options to open the app in a variety of environments. Currently, the best way to enjoy Skribble is through a web environment. 
+# Press "w" to open the web environment 
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Sign up, create an account, and enjoy!
+- Please note that if you create a child account (under 13 years of age) you will not have full access to the app upon account creation (some features like Chat, Friends will be missing).
+  To enable those features, click **Profile --> Parental Controls**. You can enable/disable features through moving the sliders at the bottom of the page.
+- To close the app, interrupt the running process by typing Ctrl+C in your terminal.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## How to Contribute
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Follow the instructions in **How to Build** to copy our latest release and cd to src. Most relevant files can be found under the app directory. Database information can be found in two locations: backend/graph_database and
+  app/utils. Current objectives include upgrading our Expo SDK and adjusting our UI to make the mobile app viewing experience more enjoyable. 
