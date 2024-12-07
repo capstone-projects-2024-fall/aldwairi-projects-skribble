@@ -1,44 +1,59 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import StorePage from '../app/storePage/storePage';
-import { AuthContext } from '../app/AuthContext';
-import createNeo4jDriver from '../app/utils/databaseSetUp';
-import { useRouter } from 'expo-router';
+import StorePage from '@/app/storePage/storePage';
+import { AuthContext } from '@/app/AuthContext';
+import createNeo4jDriver from "@/app/utils/databaseSetUp";
 import { Alert } from 'react-native';
 
 // mock database driver
-jest.mock('../app/utils/databaseSetUp', () => ({
+jest.mock('@/app/utils/databaseSetUp', () => ({
   __esModule: true,
-  default: jest.fn().mockReturnValue({
-    session: jest.fn().mockReturnValue({
-      run: jest.fn().mockResolvedValue({
-        records: [
-          {
-            get: jest.fn((key) => {
-              switch (key) {
-                case 'name':
-                  return 'New User';
-                case 'coins':
-                  return '100';
-                case 'item_id':
-                  return ['1', '2'];
-                default:
+  default: jest.fn(() => ({
+    session: jest.fn(() => ({
+      run: jest.fn((query) => {
+        if (query.includes('MATCH (u:User)-[:OWNS]->(i:Item)')) {
+          return Promise.resolve({
+            records: [
+              {
+                get: (key) => {
+                  if (key === 'items') {
+                    return ['1', '2']; // Return the items the user owns
+                  }
                   return null;
-              }
-            }),
-          },
-        ],
+                },
+              },
+            ],
+          });
+        }
+        // Default response for other queries (e.g., fetching coins)
+        return Promise.resolve({
+          records: [
+            {
+              get: (key) => {
+                switch (key) {
+                  case 'coins':
+                    return '100';
+                  case 'backgroundColor':
+                    return '#FFFFFF';
+                  default:
+                    return null;
+                }
+              },
+            },
+          ],
+        });
       }),
       close: jest.fn(),
-    }),
-  }),
+    })),
+    close: jest.fn(),
+  })),
 }));
+
 
 // Mock useRouter
 const mockRouter = {
   push: jest.fn(),
 };
-
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
 }));
@@ -49,28 +64,27 @@ jest.spyOn(Alert, 'alert');
 // mock authContext
 const mockAuthContext = {
   sessionToken: 'mockSessionToken',
+  setSessionToken: jest.fn(),
 };
 
 // wrapper def
-import { ReactNode } from 'react';
-
-const wrapper = ({ children }: { children: ReactNode }) => (
+const wrapper = ({ children }) => (
   <AuthContext.Provider value={mockAuthContext}>
     {children}
   </AuthContext.Provider>
 );
 
-// cleanup after each test
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
 // Tests
 describe('StorePage', () => {
 
+  // cleanup after each test
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   // see if user has an item
   it('should check if the user owns a specific item', async () => {
-    const { getByText } = render(<StorePage />, { wrapper });
+    const { } = render(<StorePage />, { wrapper });
 
     const mockSession = createNeo4jDriver().session();
     const queryResult = await mockSession.run(
@@ -86,7 +100,7 @@ describe('StorePage', () => {
 
   // make sure user has a specific number of coins
   it('should validate the user’s coin balance', async () => {
-    const { getByText } = render(<StorePage />, { wrapper });
+    const { } = render(<StorePage />, { wrapper });
 
     const mockSession = createNeo4jDriver().session();
     const queryResult = await mockSession.run(
@@ -119,10 +133,16 @@ describe('StorePage', () => {
   it('should show the correct modal when an item is selected', async () => {
     const { getByText, queryByText } = render(<StorePage />, { wrapper });
 
-    // select an item
-    fireEvent.press(getByText('watch')); 
+    // wait until blue wavy pants are rendered
+    await waitFor(() => {
+      expect(getByText('blue wavy pants')).toBeTruthy();
+    });
 
-    // make sure the modal is visible
-    expect(queryByText('Confirm Purchase')).toBeTruthy();
+    // select an item
+    fireEvent.press(getByText('blue wavy pants'));
+
+    await waitFor(() => {
+      expect(queryByText('Confirm Purchase')).toBeTruthy();
+    });
   });
 });
