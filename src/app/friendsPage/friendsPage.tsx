@@ -56,7 +56,7 @@ const FriendsPage = () => {
           const avatarImage = record.get("avatarImage");
           const friendCode = record.get("friendCode");
 
-          console.log("User properties:", { backgroundColor, avatarImage, friendCode }); // Debugging
+          //console.log("User properties:", { backgroundColor, avatarImage, friendCode }); // Debugging
 
           setBackgroundColor(backgroundColor || "#FFFFFF");
           setAvatarImage(avatarImage || avatar_list[0].avatar_image);
@@ -82,7 +82,7 @@ const FriendsPage = () => {
           Alert.alert("Error", "User not found.");
         }
       } catch (error) {
-        console.error("Failed to load user data", error);
+        // console.error("Failed to load user data", error);
         Alert.alert("Error", "Could not fetch user data.");
       } finally {
         await session.close();
@@ -121,7 +121,7 @@ const FriendsPage = () => {
         const friendAvatar = record.get("avatarImage");
         const clothes = record.get("wornItems");
 
-        console.log("Friend properties:", { friendName, friendAvatar, clothes });
+        // console.log("Friend properties:", { friendName, friendAvatar, clothes });
   
         // Create a friend request relationship in the database
         await session.run(
@@ -146,7 +146,7 @@ const FriendsPage = () => {
         Alert.alert('Error', 'Friend not found');
       }
     } catch (error) {
-      console.error("Failed to send friend request", error);
+      // console.error("Failed to send friend request", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       Alert.alert("Error", `Could not send friend request. Please try again. Error: ${errorMessage}`);
     } finally {
@@ -242,7 +242,7 @@ const FriendsPage = () => {
           <TouchableOpacity
             onPress={() => {
               // Explicit console log to debug
-              console.log('Remove button pressed', selectedFriend);
+              // console.log('Remove button pressed', selectedFriend);
               removeFriend(selectedFriend);
             }}
             style={styles.friendProfileRemoveButton}

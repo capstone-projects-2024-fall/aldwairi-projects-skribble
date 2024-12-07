@@ -1,7 +1,9 @@
 {
+  
   "extends": "./node_modules/expo/tsconfig.base",
   "compilerOptions": {
     "jsx": "react",
+    "types": ["jest", "@testing-library/jest-native"],
     "strict": true,
     "esModuleInterop": true,
     "paths": {

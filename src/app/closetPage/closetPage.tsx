@@ -144,6 +144,7 @@ const ClosetPage: React.FC = () => {
             resizeMode="contain"
           />
           <Image
+            testID="avatar"
             source={avatar_list.find(avatar => avatar.avatar_id === avatarImage)?.avatar_image}
             style={styles.avatar}
             resizeMode="contain"
@@ -151,6 +152,7 @@ const ClosetPage: React.FC = () => {
           {wornItemsDetails.map(item => (
             <Image
               key={item._id}
+              testID="wornItem"
               source={item.image}
               style={styles.wornItem}
               resizeMode="contain"
