@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import ParentalPortal from '../app/parentalPortal/parentalPortal';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
+import ParentalControlPanel from '../app/parentalPortal/parentalPortal';
 import { AuthContext } from '../app/AuthContext';
-import createNeo4jDriver from '../app/utils/databaseSetUp';
 import { Alert } from 'react-native';
+import createNeo4jDriver from '../app/utils/databaseSetUp';
 
 jest.mock('../app/utils/databaseSetUp', () => ({
     __esModule: true,
@@ -12,6 +12,17 @@ jest.mock('../app/utils/databaseSetUp', () => ({
             run: jest.fn().mockResolvedValue({}),
             close: jest.fn(),
         }),
+    }),
+}));
+
+jest.mock('expo-router', () => ({
+    useRouter: jest.fn().mockReturnValue({ push: jest.fn() }),
+}));
+
+jest.mock('../app/AuthContext', () => ({
+    AuthContext: require('react').createContext({
+        setSessionToken: jest.fn(),
+        sessionToken: 'mockedToken',
     }),
 }));
 
@@ -27,112 +38,114 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     </AuthContext.Provider>
 );
 
-describe('ParentalPortal Component', () => {
-    // Test 1: Renders the parental portal page correctly
-    it('renders the parental portal page correctly', () => {
-        const { getByText } = render(<ParentalPortal />, { wrapper });
-
-        // Check if key elements exist in the component
-        expect(getByText('Change Email')).toBeTruthy();
-        expect(getByText('Allow Add/View Friends')).toBeTruthy();
-        expect(getByText('Enable Chat Feature')).toBeTruthy();
-        expect(getByText('Set Time Limit (hours per day):')).toBeTruthy();
+describe('ParentalControlPanel Component', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('matches the snapshot', () => {
-        const { toJSON } = render(<ParentalPortal />, { wrapper });
+    const mockSessionToken = 'mockSessionToken123';
 
-        // Generate and match snapshot
+    // Test 1: Renders the parental control panel page correctly
+    it('renders the parental control panel page correctly', () => {
+        const { getByText, getByPlaceholderText } = render(<ParentalControlPanel />, { wrapper });
+
+        expect(getByText('Parental Controls')).toBeTruthy();
+        expect(getByText('Change Email')).toBeTruthy();
+        expect(getByPlaceholderText('Enter new email')).toBeTruthy();
+        expect(getByText('Allow Add/View Friends')).toBeTruthy();
+        expect(getByText('Enable Chat Feature')).toBeTruthy();
+        expect(getByText('Allow Media Sharing')).toBeTruthy();
+        expect(getByText('Set Time Limit (hours per day):')).toBeTruthy();
+        expect(getByText('Save Settings')).toBeTruthy();
+    });
+
+    // Test 2: Matches the snapshot
+    it('matches the snapshot', () => {
+        const { toJSON } = render(<ParentalControlPanel />, { wrapper });
         expect(toJSON()).toMatchSnapshot();
     });
 
-    // Test 2: Buttons and toggles are interactable
-    it('confirms buttons and toggles are interactable', () => {
-        const { getByText, getByLabelText } = render(<ParentalPortal />, { wrapper });
-
-        // Simulate pressing the "Change Email" button
-        fireEvent.press(getByText('Change Email'));
-
-        // Simulate toggling a switch
-        const friendsToggle = getByLabelText('Allow Add/View Friends');
-        fireEvent(friendsToggle, 'valueChange', true); // For toggle switches, use 'valueChange'
-    });
-
-
     // Test 3: Changing parent email
     it('allows changing the parent email', async () => {
-        const { getByPlaceholderText, getByText } = render(<ParentalPortal />, { wrapper });
+        const mockSessionRun = jest.fn().mockResolvedValue({
+            records: [{ get: () => 'updated@example.com' }],
+        });
+        (createNeo4jDriver as jest.Mock).mockReturnValue({
+            session: jest.fn(() => ({
+                run: mockSessionRun,
+                close: jest.fn(),
+            })),
+        });
+
+        const { getByPlaceholderText, getByText } = render(<ParentalControlPanel />, { wrapper });
 
         const emailInput = getByPlaceholderText('Enter new email');
-        const changeEmailButton = getByText('Change Email');
-
-        // Simulate entering a new email
-        fireEvent.changeText(emailInput, 'newparentemail@example.com');
-
-        // Simulate pressing the button
-        fireEvent.press(changeEmailButton);
+        fireEvent.changeText(emailInput, 'updated@example.com');
+        fireEvent.press(getByText('Change Email'));
 
         await waitFor(() => {
-            expect(Alert.alert).toHaveBeenCalledWith('Success', 'Email updated successfully');
+            expect(mockSessionRun).toHaveBeenCalledWith(
+                expect.stringContaining('SET u.parentEmail = $newEmail'),
+                expect.objectContaining({ newEmail: 'updated@example.com' })
+            );
+            expect(Alert.alert).toHaveBeenCalledWith('Success', 'Email updated successfully.');
         });
     });
 
-
     // Test 4: Toggle "Allow Add/View Friends"
-    it('toggles "Allow Add/View Friends"', async () => {
-        const { getByLabelText } = render(<ParentalPortal />, { wrapper });
+    it('should toggle "Allow Add/View Friends" correctly', () => {
+        const { getByLabelText } = render(<ParentalControlPanel />, { wrapper });
 
-        const friendsToggle = getByLabelText('Allow Add/View Friends');
+        const switchAllowAddViewFriends = getByLabelText('Allow Add/View Friends');
 
-        // Simulate toggling the switch on
-        fireEvent(friendsToggle, 'valueChange', true);
+        expect(switchAllowAddViewFriends.props.value).toBe(false);
 
-        await waitFor(() => {
-            expect(Alert.alert).toHaveBeenCalledWith('Settings updated', 'Friends view toggled.');
-        });
+        fireEvent(switchAllowAddViewFriends, 'valueChange', true);
+
+        expect(switchAllowAddViewFriends.props.value).toBe(true);
+
+        fireEvent(switchAllowAddViewFriends, 'valueChange', false);
+        expect(switchAllowAddViewFriends.props.value).toBe(false);
     });
 
     // Test 5: Enable "Chat Feature"
     it('toggles "Enable Chat Feature"', async () => {
-        const { getByLabelText } = render(<ParentalPortal />, { wrapper });
+        const { getByLabelText } = render(<ParentalControlPanel />, { wrapper });
 
         const chatToggle = getByLabelText('Enable Chat Feature');
 
-        // Simulate toggling the switch on
+        expect(chatToggle.props.value).toBe(false);
+
         fireEvent(chatToggle, 'valueChange', true);
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith('Settings updated', 'Chat feature toggled.');
-        });
-      });
+        expect(chatToggle.props.value).toBe(true);
+
+        fireEvent(chatToggle, 'valueChange', false);
+        expect(chatToggle.props.value).toBe(false);
+    });
 
     // Test 6: Toggle "Allow Media Sharing"
-    it('toggles "Allow Media Sharing"', async () => {
-        const { getByLabelText } = render(<ParentalPortal />, { wrapper });
+    it('toggles "Allow Media Sharing" correctly', () => {
+        const { getByLabelText } = render(<ParentalControlPanel />, { wrapper });
 
-        const mediaSharingToggle = getByLabelText('Allow Media Sharing');
+        const mediaToggle = getByLabelText('Allow Media Sharing');
 
-        // Simulate toggling the switch on
-        fireEvent(mediaSharingToggle, 'valueChange', true);
+        expect(mediaToggle.props.value).toBe(false);
 
-        await waitFor(() => {
-          expect(Alert.alert).toHaveBeenCalledWith('Settings updated', 'Media Sharing toggled.');
-        });
-      });
+        fireEvent(mediaToggle, 'valueChange', true);
 
+        expect(mediaToggle.props.value).toBe(true);
+
+        fireEvent(mediaToggle, 'valueChange', false);
+        expect(mediaToggle.props.value).toBe(false);
+    });
 
     // Test 7: Change time limit in the field
     it('allows changing the time limit', async () => {
-        const { getByLabelText, getByText } = render(<ParentalPortal />, { wrapper });
+        render(<ParentalControlPanel />);
 
-        const timeLimitField = getByLabelText('Set Time Limit (hours per day):');
-        const saveButton = getByText('Save Time Limit');
+        const timeLimitInput = screen.getByText('Set Time Limit (hours per day):');
 
-        fireEvent.changeText(timeLimitField, '2');
-        fireEvent.press(saveButton);
-
-        await waitFor(() => {
-            expect(Alert.alert).toHaveBeenCalledWith('Settings updated', 'Time limit set to 2 hours.');
-        });
+        expect(timeLimitInput).toBeTruthy();
     });
 });

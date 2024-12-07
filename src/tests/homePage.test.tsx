@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import HomePage from '../app/homePage';
-import { AuthContext } from '../app/AuthContext'; // Import AuthContext for mocking
+import { AuthContext } from '../app/AuthContext';
 
 // Mock router for testing
 jest.mock('expo-router', () => ({
