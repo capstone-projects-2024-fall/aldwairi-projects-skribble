@@ -1,22 +1,24 @@
-// connection.test.js
+// connection test file for neo4j database
 const neo4j = require('neo4j-driver');
 
-jest.mock('neo4j-driver');
+// mock db
+jest.mock('neo4j-driver', () => ({
+  driver: jest.fn(),
+  auth: { basic: jest.fn() },
+}));
 
 describe('Neo4j Connection', () => {
-
   let mockDriver, mockGetServerInfo;
 
   beforeEach(() => {
-    // rest mocks before a new test
-
+    // reset mocks before each new test
     mockGetServerInfo = jest.fn();
     mockDriver = {
-    
-        getServerInfo: mockGetServerInfo,
+      getServerInfo: mockGetServerInfo,
       close: jest.fn(),
-
     };
+
+    // mock the neo4j driver to return mockDriver
     neo4j.driver.mockReturnValue(mockDriver);
   });
 
@@ -25,47 +27,60 @@ describe('Neo4j Connection', () => {
     jest.clearAllMocks();
   });
 
-  // test if it can access the database
+  // tests
+  // testing a successful connection to db
   it('should establish a connection successfully', async () => {
     
-    // mock a getServerInfo call
-    mockGetServerInfo.mockResolvedValue({ version: 'Neo4j/4.4.0', edition: 'enterprise' });
+    // mock getServerInfo to resolve
+    mockGetServerInfo.mockResolvedValue({
+
+      version: 'Neo4j/4.4.0',
+      edition: 'enterprise',
+
+    });
 
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-    // import connection
-    await require('./connection');
+    // import/run connection 
+    await require('../backend/graph_database/connection');
 
+    // the assertions
     expect(neo4j.driver).toHaveBeenCalledWith(
-        
-        // credentials
       'neo4j+s://24f2d4b6.databases.neo4j.io',
       neo4j.auth.basic('neo4j', 'SXrtyxnQgr5WBO8yNwulKKI9B1ulfsiLa8SKvlJk5Hc')
-
     );
     expect(mockGetServerInfo).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith('Connection established');
-    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({ version: 'Neo4j/4.4.0' }));
+    expect(logSpy).toHaveBeenCalledWith({
+      version: 'Neo4j/4.4.0',
+      edition: 'enterprise',
+    });
 
     logSpy.mockRestore();
   });
 
-  // test if user is failing to connect 
+  // test for bad connection
   it('should handle connection errors', async () => {
 
-    // Mock a failed getServerInfo call
+    // mock getServerInfo for failure
+
     const mockError = new Error('Failed to connect');
     mockError.cause = 'Authentication error';
+
     mockGetServerInfo.mockRejectedValue(mockError);
 
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-    await require('./connection');
+    // import connection logic
+    await require('../backend/graph_database/connection');
 
+    // the assertions
     expect(mockGetServerInfo).toHaveBeenCalled();
-    
-    expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/Connection error/));
-    expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/Authentication error/));
+    expect(logSpy).toHaveBeenCalledWith(
+
+      `Connection error\n${mockError}\nCause: ${mockError.cause}`
+
+    );
 
     logSpy.mockRestore();
   });
