@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import FriendsPage from '../app/friendsPage/friendsPage';
 import { AuthContext } from '../app/AuthContext';
 import createNeo4jDriver from '../app/utils/databaseSetUp';
