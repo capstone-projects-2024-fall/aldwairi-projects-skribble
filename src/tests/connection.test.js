@@ -1,7 +1,7 @@
 // connection test file for neo4j database
 const neo4j = require('neo4j-driver');
 
-// mock db
+// mock db driver
 jest.mock('neo4j-driver', () => ({
   driver: jest.fn(),
   auth: { basic: jest.fn() },
@@ -42,8 +42,10 @@ describe('Neo4j Connection', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
     // import/run connection 
-    await import('../backend/graph_database/connection');
-
+    await jest.isolateModules(async () => {
+        await require('../backend/graph_database/connection');
+      });
+  
     // the assertions
     expect(neo4j.driver).toHaveBeenCalledWith(
       'neo4j+s://24f2d4b6.databases.neo4j.io',
@@ -72,7 +74,9 @@ describe('Neo4j Connection', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
     // import connection logic
-    await import('../backend/graph_database/connection');
+    await jest.isolateModules(async () => {
+        await require('../backend/graph_database/connection');
+      });
 
     // the assertions
     expect(mockGetServerInfo).toHaveBeenCalled();
