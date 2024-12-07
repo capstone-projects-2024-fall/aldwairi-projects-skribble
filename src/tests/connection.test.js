@@ -42,7 +42,7 @@ describe('Neo4j Connection', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
     // import/run connection 
-    await require('../backend/graph_database/connection');
+    await import('../backend/graph_database/connection');
 
     // the assertions
     expect(neo4j.driver).toHaveBeenCalledWith(
@@ -72,7 +72,7 @@ describe('Neo4j Connection', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
     // import connection logic
-    await require('../backend/graph_database/connection');
+    await import('../backend/graph_database/connection');
 
     // the assertions
     expect(mockGetServerInfo).toHaveBeenCalled();
