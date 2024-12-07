@@ -1,50 +1,46 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ClosetPage from '../app/closetPage/closetPage';
-import { AuthContext } from '../app/AuthContext';
-import { category_list, clothes_list } from '../assets/clothing/clothingAssets';
+import { AuthContext } from '@/app/AuthContext';
+import { category_list, clothes_list } from '@/assets/clothing/clothingAssets';
 
 // mock createNeo4jDriver
-jest.mock('../app/utils/databaseSetUp', () => ({
+jest.mock('@/app/utils/databaseSetUp', () => ({
   __esModule: true,
-  default: jest.fn().mockReturnValue({
-    session: jest.fn().mockReturnValue({
-      run: jest.fn().mockResolvedValue({
-        records: [
-          {
-            get: jest.fn((key) => {
-              switch (key) {
-                case 'name':
-                  return 'New User';
-                case 'avatarImage':
-                  return '1';
-                case 'ownedItems':
-                  return ['1', '2']; // Mocked owned items
-                case 'wornItems':
-                  return ['1']; // Mocked worn items
-                default:
-                  return null;
-              }
-            }),
-          },
-        ],
-      }),
+  default: jest.fn(() => ({
+    session: jest.fn(() => ({
+      run: jest.fn((query) => {
+        if (query.includes('MATCH (u:User {sessionToken: $sessionToken})-[:OWNS]->(i:Item)')) {
+          return Promise.resolve({
+            records: [{
+              get: (key) => {
+                switch (key) {
+                  case 'name':
+                    return 'New User';
+                  case 'avatarImage':
+                    return '1';
+                  case 'backgroundColor':
+                    return '#FFFFFF';
+                  case 'ownedItems':
+                    return ['1']; // Mocked owned items
+                  case 'wornItems':
+                    return []; // Mocked worn items
+                  default:
+                    return null;
+                }
+              },
+            }]
+          });
+        }}),
       close: jest.fn(),
-    }),
-  }),
+    })),
+  })),
 }));
 
 // Mocking AuthContext
 const mockAuthContext = {
   sessionToken: 'mockSessionToken',
 };
-
-// Mocking clothes_list to include an item with _id = 1
-const mockClothesList = [
-  { _id: '2', category: 'bottoms', name: 'jeans', image: require('../assets/clothing/jeans.png') },
-  { _id: '9', category: 'tops', name: 'blue Skribble shirt', image: require('../assets/clothing/blueSkribbleShirt.png') },
-  // Add more items as needed
-];
 
 // tests
 describe('ClosetPage', () => {
@@ -85,23 +81,30 @@ describe('ClosetPage', () => {
   });
 
   it('handles item selection and toggles wear status', async () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <AuthContext.Provider value={mockAuthContext}>
         <ClosetPage />
       </AuthContext.Provider>
     );
 
+    // Wait for the item to be rendered
+    await waitFor(() => {
+      expect(getByTestId('item-1')).toBeTruthy();
+    });
+
     // Select an item
-    const item = clothes_list[0]; // Example item
-    const itemButton = getByTestId(`item-${item._id}`);
-    fireEvent.press(itemButton);
+    fireEvent.press(getByTestId('item-1'));
 
     // Simulate the item being worn and check if the worn item appears on the avatar
-    expect(getByTestId(`wornItem-${item._id}`)).toBeTruthy();
+    await waitFor(() => {
+      expect(getByTestId('wornItem-1')).toBeTruthy();
+    });
 
     // Simulate item being removed (toggle the worn state)
-    fireEvent.press(itemButton);
-    expect(() => getByTestId(`wornItem-${item._id}`)).toThrow();
+    fireEvent.press(getByTestId('item-1'));
+    await waitFor(() => {
+      expect(queryByTestId('wornItem-1')).toBeNull();
+    });
   });
 
   it('fetches and displays user data correctly from the database', async () => {
