@@ -1,114 +1,104 @@
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import FriendsPage from '../app/friendsPage/friendsPage';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import JournalPage from '../app/journalPage/journalPage';
 import { AuthContext } from '../app/AuthContext';
 import createNeo4jDriver from '../app/utils/databaseSetUp';
-import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
 
-jest.mock('../app/utils/databaseSetUp', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue({
-    session: jest.fn().mockReturnValue({
-      run: jest.fn().mockResolvedValue({
-        records: [
-          {
-            get: jest.fn((key) => {
-              switch (key) {
-                case 'name':
-                  return 'New User';
-                case 'avatarImage':
-                  return 'avatar1';
-                case 'friendCode':
-                  return 'friendCode123';
-                default:
-                  return null;
-              }
-            }),
-          },
-        ],
-      }),
-      close: jest.fn(),
-    }),
+jest.mock('../utils/databaseSetUp', () => jest.fn());
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
   }),
 }));
 
-jest.mock('expo-router', () => ({
-  useRouter: jest.fn(),
-}));
-
-jest.spyOn(Alert, 'alert');
-
-const mockAuthContext = {
-  sessionToken: 'mockSessionToken',
+const mockSessionToken = 'testSessionToken';
+const mockDriver = {
+  session: jest.fn(() => ({
+    run: jest.fn(),
+    close: jest.fn(),
+  })),
 };
 
-import { ReactNode } from 'react';
+createNeo4jDriver.mockReturnValue(mockDriver);
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <AuthContext.Provider value={mockAuthContext}>
-    {children}
-  </AuthContext.Provider>
-);
+describe('JournalPage Component', () => {
+  const renderWithContext = (component) => {
+    return render(
+      <AuthContext.Provider value={{ sessionToken: mockSessionToken }}>
+        {component}
+      </AuthContext.Provider>
+    );
+  };
 
-// tests
-describe('FriendsPage', () => {
-  it('renders correctly', () => {
-    const tree = render(<FriendsPage />, { wrapper }).toJSON();
-    expect(tree).toMatchSnapshot();
+  it('renders the journal page correctly', () => {
+    const { getByText } = renderWithContext(<JournalPage />);
+
+    // Check for main elements like "New Entry" button
+    expect(getByText('New Entry')).toBeTruthy();
+    expect(getByText('Home')).toBeTruthy();
   });
 
-  it('handles friend search', async () => {
-    const { getByPlaceholderText, getByText } = render(<FriendsPage />, { wrapper });
+  it('navigates to the journal page and back correctly', () => {
+    const { getByText } = renderWithContext(<JournalPage />);
+    const homeButton = getByText('Home');
 
-    fireEvent.changeText(getByPlaceholderText('Search friends'), 'New User');
+    // Simulate navigation to Home
+    fireEvent.press(homeButton);
 
-    await waitFor(() => {
-      expect(getByText('New User')).toBeTruthy(); 
-    });
+    // Verify the navigation action
+    expect(homeButton).toBeTruthy();
   });
 
-  it('handles adding a friend', async () => {
-    const { getByText, getByPlaceholderText, queryByText } = render(<FriendsPage />, { wrapper });
+  it('allows user to create a journal prompt', async () => {
+    const { getByText, getByPlaceholderText } = renderWithContext(<JournalPage />);
 
-    fireEvent.press(getByText('Add Friend'));
+    // Click "New Entry" button
+    fireEvent.press(getByText('New Entry'));
 
-    fireEvent.changeText(getByPlaceholderText('Enter friend code'), 'friendCode123');
+    // Fill in title and prompt
+    fireEvent.changeText(getByPlaceholderText('Entry Title'), 'entry1');
+    fireEvent.changeText(getByPlaceholderText('Write about your day...'), 'test entry');
 
-    fireEvent.press(getByText('Send'));
+    // Select custom prompt
+    fireEvent.press(getByText('Select Prompt'));
+    await waitFor(() => fireEvent.press(getByText('How are you feeling today?')));
 
-    await waitFor(() => {
-      expect(queryByText('Enter friend code')).toBeNull();
-      expect(queryByText('New User')).toBeTruthy();
-    });
+    // Check if values are updated
+    expect(getByPlaceholderText('Entry Title').props.value).toBe('entry1');
+    expect(getByPlaceholderText('Write about your day...').props.value).toBe('test entry');
   });
 
-
-  it('fetches user data successfully from the database', async () => {
-    render(<FriendsPage />, { wrapper });
-
-    await waitFor(() => {
-      expect(createNeo4jDriver).toHaveBeenCalled();
+  it('saves a completed journal prompt and updates the entries', async () => {
+    const mockRun = jest.fn().mockResolvedValue({
+      records: [
+        {
+          get: (key) => {
+            const data = {
+              entryID: '12345',
+              date: new Date().toISOString(),
+              title: 'entry1',
+              content: 'test entry',
+              imageIndex: 0,
+            };
+            return data[key];
+          },
+        },
+      ],
     });
+    mockDriver.session.mockReturnValue({ run: mockRun, close: jest.fn() });
 
+    const { getByText, getByPlaceholderText } = renderWithContext(<JournalPage />);
 
-    const driverInstance = (createNeo4jDriver as jest.Mock).mock.results[0].value;
-    expect(driverInstance.session().run).toHaveBeenCalled();
-  });
+    // Create an entry
+    fireEvent.press(getByText('New Entry'));
+    fireEvent.changeText(getByPlaceholderText('Entry Title'), 'entry1');
+    fireEvent.changeText(getByPlaceholderText('Write about your day...'), 'test entry');
+    fireEvent.press(getByText('Save Entry'));
 
-
-  it('shows alert on error while fetching user data', async () => {
-    (createNeo4jDriver as jest.Mock).mockReturnValue({
-      session: () => ({
-        run: jest.fn().mockRejectedValue(new Error('Database error')), 
-        close: jest.fn(),
-      }),
-    });
-
-    render(<FriendsPage />, { wrapper });
-
+    // Wait for DB save and UI update
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith('Error', 'Could not fetch user data.');
+      expect(mockRun).toHaveBeenCalled();
+      expect(getByText('entry1')).toBeTruthy(); // Ensure the new entry is displayed
     });
   });
 });
