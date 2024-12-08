@@ -4,7 +4,7 @@ import JournalPage from '../app/journalPage/journalPage';
 import { AuthContext } from '../app/AuthContext';
 import createNeo4jDriver from '../app/utils/databaseSetUp';
 
-jest.mock('../utils/databaseSetUp', () => jest.fn());
+jest.mock('../app/utils/databaseSetUp', () => jest.fn());
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -57,7 +57,7 @@ describe('JournalPage Component', () => {
 
     // Fill in title and prompt
     fireEvent.changeText(getByPlaceholderText('Entry Title'), 'entry1');
-    fireEvent.changeText(getByPlaceholderText('Write about your day...'), 'test entry');
+    fireEvent.changeText(getByPlaceholderText('How are you feeling today?'), 'test entry');
 
     // Select custom prompt
     fireEvent.press(getByText('Select Prompt'));
@@ -65,7 +65,7 @@ describe('JournalPage Component', () => {
 
     // Check if values are updated
     expect(getByPlaceholderText('Entry Title').props.value).toBe('entry1');
-    expect(getByPlaceholderText('Write about your day...').props.value).toBe('test entry');
+    expect(getByPlaceholderText('How are you feeling today?').props.value).toBe('test entry');
   });
 
   it('saves a completed journal prompt and updates the entries', async () => {
