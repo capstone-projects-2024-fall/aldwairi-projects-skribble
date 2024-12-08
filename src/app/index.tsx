@@ -47,6 +47,17 @@ export default function LogIn() {
           return;
         }
 
+        // Check if user already exists before attempting to create
+        const existingUserResult = await session.run(
+          `MATCH (u:User {email: $email}) RETURN u`,
+          { email }
+        );
+
+        if (existingUserResult.records.length > 0) {
+          setError("Email already in use. Please sign in or use a different email.");
+          return;
+        }
+
         // generate unique petID
         const generatedPetID = uuid.v4();
         setPetID(generatedPetID);
@@ -73,30 +84,30 @@ export default function LogIn() {
         const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
 
         const result = await session.run(
-          `MERGE (u:User {email: $email})
-           ON CREATE SET
-             u.password = $password,
-             u.name = $name,
-             u.streak = 0,
-             u.coins = 100,
-             u.exp = 0,
-             u.backgroundColor = '#99CA9C',
-             u.birthday = $birthday,
-             u.parentEmail = $parentEmail,
-             u.needsParentalControls = $needsParentalControls,
-             u.sessionToken = $sessionToken,
-             u.enableChat = $enableChat, 
-             u.allowMediaSharing = $allowMediaSharing, 
-             u.timeLimit = 2,
-             u.allowAddViewFriends = $allowAddViewFriends,
-             u.avatarImage = '1',
-             u.friendCode = $friendCode
+          `CREATE (u:User {
+             email: $email,
+             password: $password,
+             name: $name,
+             streak: 0,
+             coins: 100,
+             exp: 0,
+             backgroundColor: '#99CA9C',
+             birthday: $birthday,
+             parentEmail: $parentEmail,
+             needsParentalControls: $needsParentalControls,
+             sessionToken: $sessionToken,
+             enableChat: $enableChat, 
+             allowMediaSharing: $allowMediaSharing, 
+             timeLimit: $timeLimit,
+             allowAddViewFriends: $allowAddViewFriends,
+             avatarImage: '1',
+             friendCode: $friendCode
+           })
            WITH u
-           MERGE (p:pet {petID: $petID})
-           ON CREATE SET
-             p.petName = $petName,
-             p.petPNG = $defaultAvatar  
-           MERGE (u)-[:HAS_PET]->(p)
+           CREATE (p:pet {petID: $petID})
+           SET p.petName = $petName,
+               p.petPNG = $defaultAvatar
+           CREATE (u)-[:HAS_PET]->(p)
            RETURN u, p`,
           { 
             email, 
@@ -117,7 +128,8 @@ export default function LogIn() {
           }
         );
 
-        if (result.summary.counters.containsUpdates()) {
+        // Always check for actual record creation
+        if (result.records.length > 0) {
           // Generate salt and encrypt password
           const salt = Encryption.generateSalt();
           const key = Encryption.generateKeyFromPassword(password, salt);
@@ -130,43 +142,55 @@ export default function LogIn() {
           console.log("User signed up successfully.");
           router.push("/homePage");
         } else {
-          setError("User already exists.");
+          setError("Failed to create user. Please try again.");
         }
       } else {
         // Sign In Logic
         const sessionToken = uuid.v4();
         setSessionToken(sessionToken);
 
-        const result = await session.run(
-          `MATCH (u:User {email: $email, password: $password})
-           SET u.sessionToken = $sessionToken
-           RETURN u`,
-          { email, password, sessionToken }
+        // First, retrieve the user with the given email
+        const userResult = await session.run(
+          `MATCH (u:User {email: $email}) RETURN u.password as password`,
+          { email }
         );
 
-        if (result.records.length > 0) {
-          // Verify stored credentials
-          const storedEmail = await AsyncStorage.getItem("email");
-          const storedPassword = await AsyncStorage.getItem("password");
-          const storedSalt = await AsyncStorage.getItem("salt");
-          
-          if (storedEmail && storedPassword && storedSalt) {
-            const key = Encryption.generateKeyFromPassword(password, storedSalt);
-            const encryptedPassword: EncryptionResult = JSON.parse(storedPassword);
-            const decryptedPassword = Encryption.decrypt(key, encryptedPassword.iv, encryptedPassword.ciphertext);
-
-            if (storedEmail === email && decryptedPassword === password) {
-              console.log("User signed in successfully.");
-              router.push("/homePage");
-            } else {
-              setError("Invalid email or password.");
-            }
-          } else {
-            setError("No stored credentials found.");
-          }
-        } else {
-          setError("Invalid email or password.");
+        if (userResult.records.length === 0) {
+          setError("No account found with this email.");
+          return;
         }
+
+        // Check the password
+        const storedPassword = userResult.records[0].get('password');
+        
+        if (storedPassword !== password) {
+          setError("Invalid password.");
+          return;
+        }
+
+        // Update session token
+        await session.run(
+          `MATCH (u:User {email: $email})
+           SET u.sessionToken = $sessionToken
+           RETURN u`,
+          { email, sessionToken }
+        );
+
+        // Store credentials for future use
+        try {
+          // Generate salt and encrypt password
+          const salt = Encryption.generateSalt();
+          const key = Encryption.generateKeyFromPassword(password, salt);
+          
+          await AsyncStorage.setItem("email", email);
+          await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+          await AsyncStorage.setItem("salt", salt);
+        } catch (storageError) {
+          console.error("Error storing credentials", storageError);
+        }
+
+        console.log("User signed in successfully.");
+        router.push("/homePage");
       }
     } catch (error) {
       console.error("Authentication error", error);
