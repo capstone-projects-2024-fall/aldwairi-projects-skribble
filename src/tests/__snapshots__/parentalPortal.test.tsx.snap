@@ -1,0 +1,474 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ParentalControlPanel Component matches the snapshot 1`] = `
+<RCTScrollView
+  style={
+    [
+      {
+        "flex": 1,
+        "padding": 70,
+        "paddingRight": 80,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+    ]
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "height": 200.1,
+          "justifyContent": "center",
+          "marginBottom": 10,
+          "width": "100%",
+        }
+      }
+    >
+      <Image
+        resizeMode="contain"
+        source={1}
+        style={
+          {
+            "height": "100%",
+            "maxHeight": 100,
+            "width": 600,
+          }
+        }
+      />
+    </View>
+    <Text
+      style={
+        {
+          "color": "#333",
+          "fontSize": 36,
+          "fontWeight": "bold",
+          "marginTop": -30,
+          "marginVertical": 20,
+          "textAlign": "center",
+        }
+      }
+    >
+      Parental Controls
+    </Text>
+    <View
+      style={
+        {
+          "marginBottom": 30,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "fontSize": 18,
+            "marginBottom": 10,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "fontWeight": "bold",
+            }
+          }
+        >
+          Current Email: 
+        </Text>
+      </Text>
+      <Text
+        style={
+          {
+            "fontSize": 18,
+            "fontWeight": "500",
+            "marginBottom": 5,
+          }
+        }
+      >
+        Change Email:
+      </Text>
+      <TextInput
+        autoCapitalize="none"
+        keyboardType="email-address"
+        onChangeText={[Function]}
+        placeholder="Enter new email"
+        style={
+          {
+            "backgroundColor": "#fff",
+            "borderColor": "#ddd",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "fontSize": 16,
+            "marginBottom": 10,
+            "padding": 10,
+          }
+        }
+        value=""
+      />
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ebebeb",
+            "borderRadius": 8,
+            "borderWidth": 3,
+            "marginVertical": 10,
+            "opacity": 1,
+            "padding": 15,
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.25,
+            "shadowRadius": 4,
+            "width": 200,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#000",
+              "fontSize": 18,
+              "fontWeight": "600",
+            }
+          }
+        >
+          Change Email
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "marginBottom": 30,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#333",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "marginBottom": 15,
+          }
+        }
+      >
+        Feature Controls
+      </Text>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginBottom": 15,
+            "paddingVertical": 5,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "fontSize": 18,
+              "fontWeight": "500",
+              "marginBottom": 5,
+            }
+          }
+        >
+          Allow Add/View Friends
+        </Text>
+        <RCTSwitch
+          accessibilityLabel="Allow Add/View Friends"
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#81b0ff"
+          style={
+            {
+              "height": 31,
+              "width": 51,
+            }
+          }
+          thumbTintColor="#f4f3f4"
+          tintColor="#767577"
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginBottom": 15,
+            "paddingVertical": 5,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "fontSize": 18,
+              "fontWeight": "500",
+              "marginBottom": 5,
+            }
+          }
+        >
+          Enable Chat Feature
+        </Text>
+        <RCTSwitch
+          accessibilityLabel="Enable Chat Feature"
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#81b0ff"
+          style={
+            {
+              "height": 31,
+              "width": 51,
+            }
+          }
+          thumbTintColor="#f4f3f4"
+          tintColor="#767577"
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginBottom": 15,
+            "paddingVertical": 5,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "fontSize": 18,
+              "fontWeight": "500",
+              "marginBottom": 5,
+            }
+          }
+        >
+          Allow Media Sharing
+        </Text>
+        <RCTSwitch
+          accessibilityLabel="Allow Media Sharing"
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#81b0ff"
+          style={
+            {
+              "height": 31,
+              "width": 51,
+            }
+          }
+          thumbTintColor="#f4f3f4"
+          tintColor="#767577"
+          value={false}
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginBottom": 15,
+            "paddingVertical": 5,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "fontSize": 18,
+              "fontWeight": "500",
+              "marginBottom": 5,
+            }
+          }
+        >
+          Set Time Limit (hours per day):
+        </Text>
+        <TextInput
+          keyboardType="numeric"
+          maxLength={2}
+          onChangeText={[Function]}
+          style={
+            {
+              "backgroundColor": "#fff",
+              "borderColor": "#ddd",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "fontSize": 16,
+              "padding": 10,
+              "textAlign": "center",
+              "width": 80,
+            }
+          }
+          value="2"
+        />
+      </View>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ebebeb",
+            "borderRadius": 8,
+            "borderWidth": 3,
+            "marginVertical": 10,
+            "opacity": 1,
+            "padding": 15,
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.25,
+            "shadowRadius": 4,
+            "width": 200,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#000",
+              "fontSize": 18,
+              "fontWeight": "600",
+            }
+          }
+        >
+          Save Settings
+        </Text>
+      </View>
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onClick={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ebebeb",
+          "borderRadius": 8,
+          "borderWidth": 3,
+          "marginVertical": 10,
+          "opacity": 1,
+          "padding": 15,
+          "shadowColor": "#000",
+          "shadowOffset": {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 0.25,
+          "shadowRadius": 4,
+          "width": 75,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#000",
+            "fontSize": 18,
+            "fontWeight": "600",
+          }
+        }
+      >
+        Back
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import styles from './styles';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   Switch,
   ScrollView,
   Platform,
@@ -17,7 +17,7 @@ import neo4j from 'neo4j-driver';
 import { logo_list } from '../../assets/logos/logosAssets';
 import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils';
-import { AuthContext } from "../AuthContext"; 
+import { AuthContext } from "../AuthContext";
 
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
@@ -45,10 +45,10 @@ const ParentalControlPanel: React.FC = () => {
                 const result = await session.run(
                     `MATCH (u:User {sessionToken: $sessionToken})
                      RETURN u.parentEmail AS parentEmail,
-                            u.allowAddViewFriends AS allowAddViewFriends, 
-                            u.enableChat AS enableChat, 
-                            u.allowMediaSharing AS allowMediaSharing, 
-                            u.timeLimit AS timeLimit, 
+                            u.allowAddViewFriends AS allowAddViewFriends,
+                            u.enableChat AS enableChat,
+                            u.allowMediaSharing AS allowMediaSharing,
+                            u.timeLimit AS timeLimit,
                             u.backgroundColor AS backgroundColor`,
                     { sessionToken }
                 );
@@ -117,10 +117,10 @@ const ParentalControlPanel: React.FC = () => {
         try {
             await session.run(
                 `MATCH (u:User {sessionToken: $sessionToken})
-                 SET u.allowAddViewFriends = $allowAddViewFriends, 
-                     u.enableChat = $enableChat, 
-                     u.allowMediaSharing = $allowMediaSharing, 
-                     u.timeLimit = $timeLimit, 
+                 SET u.allowAddViewFriends = $allowAddViewFriends,
+                     u.enableChat = $enableChat,
+                     u.allowMediaSharing = $allowMediaSharing,
+                     u.timeLimit = $timeLimit,
                      u.backgroundColor = $backgroundColor`,
                 { sessionToken, allowAddViewFriends, enableChat, allowMediaSharing, timeLimit, backgroundColor }
             );
@@ -167,7 +167,7 @@ const ParentalControlPanel: React.FC = () => {
                     keyboardType="email-address"
                     autoCapitalize="none"
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={changeEmail}
                 >
@@ -187,6 +187,7 @@ const ParentalControlPanel: React.FC = () => {
                         onValueChange={setAllowAddViewFriends}
                         trackColor={{ false: '#767577', true: '#81b0ff' }}
                         thumbColor={allowAddViewFriends ? '#2196F3' : '#f4f3f4'}
+                        accessibilityLabel="Allow Add/View Friends"
                     />
                 </View>
 
@@ -198,6 +199,7 @@ const ParentalControlPanel: React.FC = () => {
                         onValueChange={setEnableChat}
                         trackColor={{ false: '#767577', true: '#81b0ff' }}
                         thumbColor={enableChat ? '#2196F3' : '#f4f3f4'}
+                        accessibilityLabel="Enable Chat Feature"
                     />
                 </View>
 
@@ -209,6 +211,7 @@ const ParentalControlPanel: React.FC = () => {
                         onValueChange={setAllowMediaSharing}
                         trackColor={{ false: '#767577', true: '#81b0ff' }}
                         thumbColor={allowMediaSharing ? '#2196F3' : '#f4f3f4'}
+                        accessibilityLabel="Allow Media Sharing"
                     />
                 </View>
 
@@ -224,7 +227,7 @@ const ParentalControlPanel: React.FC = () => {
                     />
                 </View>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[styles.button, { backgroundColor: getDarkerShade(backgroundColor) }]}
                     onPress={saveControls}
                 >
@@ -233,7 +236,7 @@ const ParentalControlPanel: React.FC = () => {
             </View>
 
             {/* Back Button */}
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={[styles.button, styles.backButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
                 onPress={goToProfilePage}
             >
