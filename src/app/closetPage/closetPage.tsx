@@ -114,10 +114,14 @@ const ClosetPage: React.FC = () => {
   const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor }]}>
+    <ScrollView style={[styles.container, { backgroundColor }]} testID="closetPage">
       {/* Header */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.push('/homePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
+      <View style={styles.headerContainer} testID="headerContainer">
+        <TouchableOpacity
+          onPress={() => router.push('/homePage')}
+          style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
+          testID="backButton"
+        >
           <Text style={styles.headerButtonText}>Back</Text>
         </TouchableOpacity>
         <View style={styles.logoContainer}>
@@ -125,59 +129,69 @@ const ClosetPage: React.FC = () => {
             source={logo_list.find(logo => logo.logo_id === "1")?.logo_image}
             style={styles.logo}
             resizeMode="contain"
+            testID="logoImage"
           />
         </View>
-        <TouchableOpacity onPress={() => router.push('/storePage/storePage')} style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}>
+        <TouchableOpacity
+          onPress={() => router.push('/storePage/storePage')}
+          style={[styles.headerButton, { backgroundColor: getDarkerShade(backgroundColor) }]}
+          testID="storeButton"
+        >
           <Text style={styles.headerButtonText}>Store</Text>
         </TouchableOpacity>
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>Closet</Text>
+      <Text style={styles.title} testID="closetTitle">Closet</Text>
 
-      <View style={styles.mainContent}>
+      <View style={styles.mainContent} testID="mainContent">
         {/* Avatar */}
-        <View style={styles.avatarContainer}>
+        <View style={styles.avatarContainer} testID="avatarContainer">
           <Image
             source={require('../../assets/images/podium.png')}
             style={styles.podium}
             resizeMode="contain"
+            testID="podiumImage"
           />
           <Image
-            testID="avatar"
             source={avatar_list.find(avatar => avatar.avatar_id === avatarImage)?.avatar_image}
             style={styles.avatar}
             resizeMode="contain"
+            testID="avatarImage"
           />
           {wornItemsDetails.map(item => (
             <Image
               key={item._id}
-              testID="wornItem"
               source={item.image}
               style={styles.wornItem}
               resizeMode="contain"
+              testID={`wornItem-${item._id}`}
             />
           ))}
         </View>
 
         <View style={styles.rightContainer}>
           {/* Category Selection */}
-          <View style={styles.categoryContainer}>
+          <View style={styles.categoryContainer} testID="categoryContainer">
             {category_list.map(category => (
-              <TouchableOpacity key={category.category_id} onPress={() => handleCategorySelect(category.category_id)}>
-                <Image source={category.category_image} style={styles.categoryImage} resizeMode="contain" />
-                <Text style={styles.categoryText}>{category.category_id}</Text>
+              <TouchableOpacity
+                key={category.category_id}
+                onPress={() => handleCategorySelect(category.category_id)}
+                testID={`category-${category.category_id}`}
+              >
+                <Image source={category.category_image} style={styles.categoryImage} resizeMode="contain" testID={`categoryImage-${category.category_id}`} />
+                <Text style={styles.categoryText} testID={`categoryText-${category.category_id}`}>{category.category_id}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Clothing Items */}
-          <View style={styles.itemsContainer}>
+          <View style={styles.itemsContainer} testID="itemsContainer">
             {filteredItems.map(item => (
-              <TouchableOpacity key={item._id} onPress={() => handleItemSelect(item)}>
-                <View style={styles.item}>
-                  <Image source={item.image} style={styles.itemImage} resizeMode="contain" />
-                  <Text style={styles.itemName}>{item.name}</Text>
+              <TouchableOpacity key={item._id} onPress={() => handleItemSelect(item)} testID={`item-${item._id}`}>
+                <View style={styles.item} testID={`itemView-${item._id}`}>
+                  <Image source={item.image} style={styles.itemImage} resizeMode="contain" testID={`itemImage-${item._id}`} />
+                  <Text style={styles.itemName} testID={`itemName-${item._id}`}>{item.name}</Text>
                 </View>
               </TouchableOpacity>
             ))}
