@@ -57,7 +57,7 @@ describe('JournalPage Component', () => {
 
     // Fill in title and prompt
     fireEvent.changeText(getByPlaceholderText('Entry Title'), 'entry1');
-    fireEvent.changeText(getByPlaceholderText('How are you feeling today?'), 'test entry');
+    fireEvent.changeText(getByPlaceholderText('Write about your day...'), 'test entry');
 
     // Select custom prompt
     fireEvent.press(getByText('Select Prompt'));
