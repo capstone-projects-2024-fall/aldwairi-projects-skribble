@@ -9,6 +9,16 @@ import { AuthContext } from "./AuthContext";
 import { avatar_list } from "@/assets/avatars/avatarAssets";
 import { Encryption, EncryptionResult } from "@/encryption/Encryption";
 
+
+/**
+ * LogIn component for handling user authentication (sign-up and sign-in).
+ * Allows users to sign up or sign in using email, password, and other optional fields such as birthday and parent's email.
+ * Sign-up includes validation, user creation in the Neo4j database, and encrypting user credentials.
+ * Sign-in validates the email and password, updates the session token, and stores credentials in AsyncStorage.
+ *
+ * @export
+ * @returns {React.Element} JSX for the login and signup form.
+ */
 export default function LogIn() {
   const [email, setEmail] = useState("");
   const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
@@ -22,14 +32,24 @@ export default function LogIn() {
 
   const router = useRouter();
 
-  // Set up the Neo4j driver
+  /**
+   * Set up the Neo4j driver
+   */
   const driver = createNeo4jDriver();
 
+  /**
+   * Toggles between sign-up and sign-in forms.
+   */
   const handleAuthToggle = () => {
     setIsSignUp(!isSignUp);
     setError(""); // Clear error when switching between Sign Up and Sign In
   };
 
+   /**
+   * Handles the authentication process, including sign-up and sign-in logic.
+   * Sign-up logic checks for valid input, creates a new user, and stores encrypted credentials.
+   * Sign-in logic validates the email and password and updates the session token.
+   */
   const handleAuth = async () => {
     const session = driver.session();
 

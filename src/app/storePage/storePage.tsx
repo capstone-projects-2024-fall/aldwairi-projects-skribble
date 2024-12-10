@@ -9,6 +9,14 @@ import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade, getLighterShade } from '../utils/colorUtils'; 
 import { AuthContext } from '../AuthContext';
 
+/**
+ * StorePage is the page where users can view and purchase clothing items using their in-app currency (coins).
+ * It allows users to select a category of clothing, view items within that category, and confirm purchases. 
+ * The user's available coins and background color are fetched from the database (Neo4j), and the page updates 
+ * based on their selections.
+ *
+ * @returns {React.FC} A functional React component representing the store page.
+ */
 const StorePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
@@ -53,15 +61,29 @@ const StorePage: React.FC = () => {
     fetchUserCoins();
   }, [sessionToken]);
 
+  /**
+   * Handles category selection by updating the selected category state.
+   * 
+   * @param {string} category_id - The ID of the selected category.
+   */
   const handleCategorySelect = (category_id: string) => {
     setSelectedCategory(category_id);
   };
 
+   /**
+   * Handles item selection by setting the selected item and displaying the purchase modal.
+   * 
+   * @param {any} item - The item selected for purchase.
+   */
   const handleItemSelect = (item: any) => {
     setSelectedItem(item);
     setModalVisible(true);
   };
 
+  /**
+   * Handles the purchase of the selected item. If the user has enough coins, it updates
+   * the database by subtracting the cost and assigning the item to the user.
+   */
   const handlePurchase = async () => {
     if (userCoins >= selectedItem.price) {
       const session = driver.session();
@@ -88,6 +110,16 @@ const StorePage: React.FC = () => {
     setModalVisible(false);
   };
 
+  /**
+ * Filters the list of clothing items based on the selected category and owned items.
+ * 
+ * If a category is selected, it filters the items to include only those that match the 
+ * selected category and are owned by the user. If no category is selected, it defaults 
+ * to filtering for items in the "bottoms" category.
+ * 
+ * @type {Array<Object>} The list of clothing items that match the selected category and 
+ *                       are owned by the user.
+ */
   const filteredItems = selectedCategory
     ? clothes_list.filter(item => item.category === selectedCategory)
     : clothes_list.filter(item => item.category === 'bottoms');

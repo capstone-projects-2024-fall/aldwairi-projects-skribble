@@ -9,6 +9,22 @@ import createNeo4jDriver from './utils/databaseSetUp';
 import { getDarkerShade } from './utils/colorUtils';
 import { AuthContext } from "./AuthContext";
 
+/**
+ * HomePage component displays the main interface of the application, including the user's avatar,
+ * worn items, and various navigation buttons such as Journal, Profile, Store, Closet, Chat, and Friends.
+ * It also dynamically adjusts the UI based on the user's session data, such as avatar, background color, 
+ * and enabled features (e.g., chat and friends management).
+ * 
+ * - Fetches user data from a Neo4j database based on the session token.
+ * - Allows dynamic styling based on user preferences and platform.
+ * - Conditionally renders buttons and content depending on the user's settings.
+ * 
+ * @component
+ * @example
+ * return <HomePage />;
+ * 
+ * @returns {JSX.Element} The rendered HomePage component
+ */
 const HomePage: React.FC = () => {
   const router = useRouter();
   const [backgroundColor, setBackgroundColor] = useState<string>('#FFFFFF');
@@ -21,8 +37,18 @@ const HomePage: React.FC = () => {
 
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
-
-  // load user data
+  
+  /**
+   * Loads user data from the database using the session token.
+   * This function is executed when the component is mounted (on initial render) and 
+   * retrieves user-specific information such as background color, avatar image, 
+   * worn items, chat settings, and friend code preferences from the database.
+   * 
+   * The retrieved data is used to update the component's state, including 
+   * background color, avatar, and worn items.
+   * 
+   * @returns {void} No return value.
+   */
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session();
@@ -69,10 +95,27 @@ const HomePage: React.FC = () => {
     loadUserData();
   }, [sessionToken]);
 
+  /**
+   * Navigates to a specified page.
+   * This function is used to programmatically navigate to different pages in the app
+   * by passing the target page's route as a string.
+   * 
+   * @param {string} page - The route of the page to navigate to (e.g., "/homePage").
+   * @returns {void} No return value.
+   */
   const goToPage = (page: string) => {
     router.push(page);
   };
 
+  /**
+   * Gets the logo dimensions based on the platform and screen width.
+   * This function adjusts the logo's size depending on whether the app is running on 
+   * the web or mobile, using screen width to scale the logo size proportionally.
+   * 
+   * @returns {Object} An object containing the logo's width and height properties.
+   * @returns {number} width - The width of the logo.
+   * @returns {number} height - The height of the logo.
+   */
   const getLogoDimensions = () => {
     if (Platform.OS === 'web') {
       return {
@@ -89,6 +132,15 @@ const HomePage: React.FC = () => {
 
   const logoDimensions = getLogoDimensions();
   
+
+  /**
+   * Filters the clothes list to return the details of worn items based on the user's 
+   * worn items data.
+   * This function uses the `wornItems` array, which contains item IDs, to filter 
+   * the `clothes_list` and return the details of the items the user is currently wearing.
+   * 
+   * @returns {Array} An array of objects representing the details of the worn items.
+   */
   const wornItemsDetails = clothes_list.filter(item => wornItems.includes(item._id));
 
   return (

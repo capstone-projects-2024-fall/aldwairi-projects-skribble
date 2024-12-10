@@ -5,6 +5,11 @@ import GreenPinkLogo from './GreenPinkLogo.svg';
 import PinkBlueLogo from './PinkBlueLogo.svg';
 
 // avatar list
+/**
+ * List of logo objects, each containing a logo ID and an image.
+ *
+ * @type {Array<{logo_id: string, logo_image: string}>}
+ */
 export const logo_list = [
     {
         logo_id: "1",

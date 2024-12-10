@@ -19,6 +19,20 @@ import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
+/**
+ * `ParentalControlPanel` component allows a user (likely a parent) to manage various parental control settings.
+ * The component retrieves the current settings from the database (Neo4j) using the session token,
+ * displays the current settings, and provides options to modify them, such as updating the parent's email, 
+ * toggling chat, friend addition, and media sharing permissions, and setting time limits for the child user.
+ * 
+ * The component supports a form where the user can update the email address and save parental control settings
+ * directly to the Neo4j database. Changes are saved when the "Save Settings" button is pressed, and a confirmation
+ * message appears for successful updates. Additionally, the component allows the user to navigate to the profile page
+ * after saving changes.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered ParentalControlPanel component, which is a view containing the settings controls.
+ */
 const ParentalControlPanel: React.FC = () => {
     const router = useRouter();
 
@@ -37,7 +51,21 @@ const ParentalControlPanel: React.FC = () => {
         email: ""
       });
 
-    // Use Effect to load saved settings from Neo4j
+    /**
+     * The `useEffect` hook is responsible for loading the user's parental control settings from the Neo4j database
+     * when the component mounts or when the `sessionToken` changes. It queries the database to fetch settings such as
+     * the parent's email, permissions for adding/viewing friends, enabling chat, media sharing, time limits, and the background color.
+     * If the settings are successfully retrieved, they are stored in the component's state for rendering.
+     * 
+     * The hook runs the database query within an asynchronous function and updates the component state based on the query results.
+     * If the settings cannot be loaded or there is an error during the process, the error is logged to the console.
+     *
+     * @effect
+     * @function
+     * @async
+     * @param {void} 
+     * @returns {void} No return value. The hook updates component state based on the fetched settings.
+     */
     useEffect(() => {
         const loadSettings = async () => {
             const session = driver.session();
@@ -77,7 +105,12 @@ const ParentalControlPanel: React.FC = () => {
         loadSettings();
     }, [sessionToken]);
 
-    // Change the email address
+    /**
+     * Handles the change of the parent email. Updates the email in the Neo4j database.
+     * Alerts the user on success or failure.
+     *
+     * @returns {void} No return value.
+     */
     const changeEmail = async () => {
         if (!newEmail.trim()) {
             Alert.alert("Error", "Email cannot be empty.");
@@ -111,7 +144,12 @@ const ParentalControlPanel: React.FC = () => {
         }
     };
 
-    // Save all settings
+    /**
+     * Saves the current parental control settings to the Neo4j database.
+     * This includes settings for friend additions, chat enablement, media sharing, and time limits.
+     * 
+     * @returns {void} No return value.
+     */
     const saveControls = async () => {
         const session = driver.session();
         try {
@@ -133,6 +171,11 @@ const ParentalControlPanel: React.FC = () => {
         }
     };
 
+    /**
+     * Navigates the user to the profile page after saving parental control settings.
+     * 
+     * @returns {void} No return value.
+     */
     const goToProfilePage = () => {
         saveControls();
         router.push('/profilePage/profilePage');

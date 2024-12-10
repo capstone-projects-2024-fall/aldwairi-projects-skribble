@@ -65,7 +65,67 @@ import redBow from './redBow.png'
 import redScarf from './redScarf.png'
 import watch from './watch.png'
 
-// load 
+/**
+ * Collection of image assets for various categories including bottoms, tops, full outfits, shoes, and accessories.
+ *
+ * @type {{
+*   bottoms: string, 
+*   tops: string, 
+*   outfits: string, 
+*   shoes: string, 
+*   accessories: string,
+*   blackPants: string,
+*   blueWavyPants: string,
+*   checkerSkirt: string,
+*   greenSkirt: string,
+*   jeans: string,
+*   plaidSkirt: string,
+*   purpleSkirt: string,
+*   splatterPants: string,
+*   blueJacket: string,
+*   blueOmbreShirt: string,
+*   blueSkribbleShirt: string,
+*   blueTankShirt: string,
+*   brownJacket: string,
+*   greenSkribbleShirt: string,
+*   tropicalShirt: string,
+*   pinkSkribbleShirt: string,
+*   pinkTankShirt: string,
+*   purpleShirt: string,
+*   whiteButtonUp: string,
+*   plaidShirt: string,
+*   blueDress: string,
+*   greenDress: string,
+*   jeanOveralls: string,
+*   pinkDress: string,
+*   pinkOveralls: string,
+*   purpleDress: string,
+*   flowerDress: string,
+*   sageDress: string,
+*   sunflowerDress: string,
+*   sunflowerOveralls: string,
+*   tulipDress: string,
+*   yellowDress: string,
+*   blackBoots: string,
+*   blackShoes: string,
+*   blueSocks: string,
+*   pinkSocks: string,
+*   purpleBoots: string,
+*   yellowShoes: string,
+*   blueHat: string,
+*   blueScarf: string,
+*   crown: string,
+*   greenBdayHat: string,
+*   greenTie: string,
+*   necklace: string,
+*   pinkBow: string,
+*   pinkHat: string,
+*   purpleBdayHat: string,
+*   redBow: string,
+*   redScarf: string,
+*   watch: string
+* }}
+*/
 export const assets = {
     bottoms,
     tops,
@@ -124,7 +184,15 @@ export const assets = {
     watch
 }
 
-// clohing category
+// clothing category
+/**
+ * List of clothing categories with associated category IDs and images.
+ *
+ * @type {{
+*   category_id: string, 
+*   category_image: string
+* }[]}
+*/
 export const category_list = [
     {
         category_id: "bottoms",
@@ -149,6 +217,18 @@ export const category_list = [
 ]
 
 // clothing items list
+/**
+ * List of clothing items, each with an ID, category, name, image, price, and quantity.
+ *
+ * @type {{
+*   _id: string,
+*   category: string,
+*   name: string,
+*   image: string,
+*   price: number,
+*   quantity: number
+* }[]}
+*/
 export const clothes_list = [
     {
         _id: "1",

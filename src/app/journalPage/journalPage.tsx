@@ -18,14 +18,55 @@ import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
+/**
+ * Journal Interface
+ *
+ * @interface JournalEntry
+ * @typedef {JournalEntry}
+ */
 interface JournalEntry {
-  entryID: number;
-  title: string;
-  content: string;
-  date: string;
-  imageIndex: number;
+  /**
+ * journal number 
+ *
+ * @type {number}
+ */
+entryID: number;
+  /**
+ * journal title
+ *
+ * @type {string}
+ */
+title: string;
+  /**
+ * journal content
+ *
+ * @type {string}
+ */
+content: string;
+  /**
+ * journal date
+ *
+ * @type {string}
+ */
+date: string;
+  /**
+ * journal image index
+ *
+ * @type {number}
+ */
+imageIndex: number;
 }
 
+/**
+ * JournalPage component displays the user's journal entries and allows adding, viewing, and deleting entries.
+ * It also allows selecting a writing prompt for new entries and shows a reward GIF when an entry is saved.
+ * 
+ * The component fetches user data (e.g., background color, avatar image, experience points, etc.) and journal entries from a Neo4j database.
+ * It uses the AuthContext to get the session token, and handles actions like showing a new entry form, saving entries, and deleting entries.
+ * 
+ * @component
+ * @returns {React.FC} JournalPage
+ */
 const JournalPage: React.FC = () => {
   const router = useRouter();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -84,6 +125,12 @@ const JournalPage: React.FC = () => {
     require('../../assets/images/tiger/tiger5.png')
   ];
 
+  /**
+   * Function to get the avatar image set based on the user's avatar choice.
+   * 
+   * @param {string | null} id - The avatar image ID.
+   * @returns {Array} - Array of image sources corresponding to the avatar.
+   */
   const getImageSet = (id: string | null) => {
     console.log("set:", id)
     switch (id) {
@@ -104,7 +151,10 @@ const JournalPage: React.FC = () => {
 
   const driver = createNeo4jDriver();
 
-  // Load journal entries
+   /**
+   * Function to fetch and load user data from Neo4j database.
+   * This includes background color, avatar image, experience points, coins, and streaks.
+   */
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session()
@@ -167,11 +217,20 @@ const JournalPage: React.FC = () => {
     console.log("User properties:", { backgroundColor, avatarImage, exp, coins, streaks });
   }, [sessionToken]);
 
+  /**
+ * Navigates the user to the home page.
+ * Uses the router to navigate to the "/homePage" route.
+ * 
+ * @function
+ * @returns {void}
+ */
   const navigateToHomePage = () => {
     router.push('/homePage');
   };
 
-  // Function to show GIF animation
+  / /**
+  * Function to show a reward GIF with fade-in and fade-out animation.
+  */
   const showRewardGif = () => {
     setIsGifVisible(true);
     Animated.sequence([
@@ -191,23 +250,46 @@ const JournalPage: React.FC = () => {
     });
   };
 
+    /**
+   * Function to generate a random index for selecting an image from the avatar set.
+   * 
+   * @returns {number} - A random image index.
+   */
   const getRandomImageIndex = (): number => {
     const imageSet = getImageSet(avatarImage);
     console.log("imageSet:", { imageSet })
     return Math.floor(Math.random() * imageSet.length);
   };
 
-
+  /**
+ * Displays the form to create a new journal entry.
+ * Sets the form visibility to true and resets the current entry state to null.
+ * This allows the user to start a new journal entry.
+ * 
+ * @function
+ * @returns {void}
+ */
   const showNewEntryForm = () => {
     setIsFormVisible(true);
     setCurrentEntry(null);
   };
 
+/**
+ * Cancels the creation of a new journal entry.
+ * Hides the form for creating a new entry and resets the selected prompt.
+ * 
+ * @function
+ * @returns {void}
+ */
   const cancelNewEntryForm = () => {
     setIsFormVisible(false);
     setSelectedPrompt(null);
   };
 
+   /**
+   * Function to save a new journal entry to the database.
+   * Updates user experience points, coins, and streaks, and creates a new journal entry.
+   */
   const saveEntry = async () => {
     if (!currentEntry?.title || !currentEntry?.content) {
       Alert.alert('Error', 'Please fill in all fields');

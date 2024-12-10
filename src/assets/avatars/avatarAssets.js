@@ -6,6 +6,11 @@ import penguinAvatar from './penguin.png';
 import tigerAvatar from './tiger.png';
 
 // avatar list
+/**
+ * List of available avatars for selection.
+ * 
+ * @type {Array<{avatar_id: string, avatar_image: string}>}
+ */
 export const avatar_list = [
     {
         avatar_id: "1",

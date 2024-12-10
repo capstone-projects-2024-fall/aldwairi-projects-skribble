@@ -17,6 +17,20 @@ import createNeo4jDriver from '../utils/databaseSetUp';
 import { getDarkerShade } from '../utils/colorUtils';
 import { AuthContext } from "../AuthContext";
 
+/**
+ * ProfilePage component displays and allows the user to update their profile information.
+ * It fetches user data from a Neo4j database, including the user's name, email, coins, streak, experience points (EXP), 
+ * and friend code (if applicable). It also allows users to change their avatar, name, email, and background color.
+ * The component also has functionality for logging out the user, navigating to the parental portal, and navigating back to the home page.
+ *
+ * @component
+ * @example
+ * return (
+ *   <ProfilePage />
+ * )
+ * 
+ * @returns {React.FC} ProfilePage component that renders the user's profile and offers settings for updates.
+ */
 const ProfilePage: React.FC = () => {
   const [userName, setUserName] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
@@ -38,7 +52,10 @@ const ProfilePage: React.FC = () => {
   // Set up the Neo4j driver
   const driver = createNeo4jDriver();
 
-  // Load user data from Neo4j using sessionToken
+   /**
+   * Loads user data from Neo4j using the session token.
+   * This function runs a Cypher query to fetch user details like email, coins, streak, and more.
+   */
   useEffect(() => {
     const loadUserData = async () => {
       const session = driver.session();
@@ -106,7 +123,11 @@ const ProfilePage: React.FC = () => {
     }
   }, [sessionToken]);
 
-  // Handle Avatar Selection
+  
+  /**
+   * Handles the avatar selection and updates the user's avatar in the database.
+   * @param {string} avatar_id - The ID of the selected avatar.
+   */
   const handleAvatarSelect = async (avatar_id: string) => {
     setSelectedAvatar(avatar_id);
     const session = driver.session();
@@ -127,7 +148,10 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Update User Name
+  /**
+   * Updates the user's name in the database.
+   * @returns {void}
+   */
   const updateUserName = async () => {
     if (!userName.trim()) {
       Alert.alert("Error", "Name cannot be empty.");
@@ -161,7 +185,10 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Update User Email
+  /**
+   * Updates the user's email in the database.
+   * @returns {void}
+   */
   const updateUserEmail = async () => {
     if (!newEmail.trim()) {
       Alert.alert("Error", "Email cannot be empty.");
@@ -195,7 +222,11 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Update Background Color
+  /**
+   * Updates the background color of the user's profile.
+   * @param {string} color - The selected background color.
+   * @returns {void}
+   */
   const updateBackgroundColor = async (color: string) => {
     const session = driver.session();
     try {
@@ -216,15 +247,31 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  /**
+ * Navigate to the Parental Portal page.
+ * This function is triggered when the user clicks the button to navigate to the Parental Portal.
+ * It uses the router to push the '/parentalPortal/parentalPortal' route and transition to that page.
+ * 
+ * @returns {void} No return value.
+ */
   const navigateToParentalPortal = () => {
     router.push('/parentalPortal/parentalPortal');
   };
 
+  /**
+ * Navigate to the Home Page.
+ * This function is triggered when the user clicks the button to go back to the Home Page.
+ * It uses the router to push the '/homePage' route and transition to that page.
+ * 
+ * @returns {void} No return value.
+ */
   const navigateToHomePage = () => {
     router.push('/homePage');
   };
 
-  // Handle Logout
+  /**
+   * Handles logging out the user by removing the session token from the database.
+   */
   const handleLogout = async () => {
     const session = driver.session();
     try {
