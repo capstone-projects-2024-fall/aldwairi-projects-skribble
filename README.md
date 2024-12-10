@@ -3,6 +3,16 @@
 
 Skribble is a journaling app geared towards kids aged 6-12, with the goal of establishing self-care habits and an open inner dialogue at a young age to counteract the negative impact of social media on youth. 
 
+## Features
+- Buy clothing items for avatar in the Store.
+- Change clothing items for avatar in the Closet; view avatar with selected clothing in closet and homepage.
+- Create and delete journal entries in Journal.
+- Change app display in Profile (avatar and background color).
+- Change and view user data in Profile (change name and email; view coins, exp, streak, and friend code).
+- Change parental data in Parental Portal (parental email and parental controls such as Add/View Friends, Chat, Media Sharing, and Time Limit)
+- Chat with a chatbot using Chat.
+- Add friends using their friend code in Friends.
+
 ## How To Run
 
 - Download the latest version of [Node.js](https://nodejs.org/en). Node.js includes the package manager npm, which we'll use later to help with installing our needed dependencies (things our program needs to run).
