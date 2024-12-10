@@ -4,6 +4,8 @@
 Skribble is a journaling app geared towards kids aged 6-12, with the goal of establishing self-care habits and an open inner dialogue at a young age to counteract the negative impact of social media on youth. 
 
 ## Features
+- Create an account using email, password, and birthday (under 13 requires parent email).
+- Log in with previously created account.
 - Buy clothing items for avatar in the Store.
 - Change clothing items for avatar in the Closet; view avatar with selected clothing in closet and homepage.
 - Create and delete journal entries in Journal.
