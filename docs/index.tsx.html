@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: index.tsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: index.tsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useContext } from "react";
+import { Text, View, TextInput, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import uuid from 'react-native-uuid';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import styles from "./indexStyles";
+import createNeo4jDriver from './utils/databaseSetUp';
+import { AuthContext } from "./AuthContext";
+import { avatar_list } from "@/assets/avatars/avatarAssets";
+import { Encryption, EncryptionResult } from "@/encryption/Encryption";
+
+
+/**
+ * LogIn component for handling user authentication (sign-up and sign-in).
+ * Allows users to sign up or sign in using email, password, and other optional fields such as birthday and parent's email.
+ * Sign-up includes validation, user creation in the Neo4j database, and encrypting user credentials.
+ * Sign-in validates the email and password, updates the session token, and stores credentials in AsyncStorage.
+ *
+ * @export
+ * @returns {React.Element} JSX for the login and signup form.
+ */
+export default function LogIn() {
+  const [email, setEmail] = useState("");
+  const [avatarImage, setAvatarImage] = useState(avatar_list[0].avatar_image);
+  const [password, setPassword] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
+  const [isSignUp, setIsSignUp] = useState(true);
+  const [error, setError] = useState(""); // State for error message
+  const { setSessionToken } = useContext(AuthContext);
+  const [petID, setPetID] = useState("");
+
+  const router = useRouter();
+
+  /**
+   * Set up the Neo4j driver
+   */
+  const driver = createNeo4jDriver();
+
+  /**
+   * Toggles between sign-up and sign-in forms.
+   */
+  const handleAuthToggle = () => {
+    setIsSignUp(!isSignUp);
+    setError(""); // Clear error when switching between Sign Up and Sign In
+  };
+
+   /**
+   * Handles the authentication process, including sign-up and sign-in logic.
+   * Sign-up logic checks for valid input, creates a new user, and stores encrypted credentials.
+   * Sign-in logic validates the email and password and updates the session token.
+   */
+  const handleAuth = async () => {
+    const session = driver.session();
+
+    try {
+      if (isSignUp) {
+        // Sign Up Logic
+        if (!email || !password || !birthday) {
+          setError("Email, password, and birthday cannot be blank.");
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          setError("Please enter a valid email address.");
+          return;
+        }
+
+        // Check if user already exists before attempting to create
+        const existingUserResult = await session.run(
+          `MATCH (u:User {email: $email}) RETURN u`,
+          { email }
+        );
+
+        if (existingUserResult.records.length > 0) {
+          setError("Email already in use. Please sign in or use a different email.");
+          return;
+        }
+
+        // generate unique petID
+        const generatedPetID = uuid.v4();
+        setPetID(generatedPetID);
+        const petName = "Benny";
+
+        const birthDate = new Date(birthday);
+        const age = new Date().getFullYear() - birthDate.getFullYear();
+        const needsParentalControls = age &lt; 13;
+
+        const enableChat = !needsParentalControls;
+        const allowAddViewFriends = !needsParentalControls;
+        const allowMediaSharing = !needsParentalControls;
+        const timeLimit = needsParentalControls ? 2 : null;
+
+        if (needsParentalControls &amp;&amp; !parentEmail) {
+          setError("Parent's email is required for users under 13.");
+          return;
+        }
+
+        // Create a new user or ensure the user exists
+        const sessionToken = uuid.v4(); 
+        const friendCode = uuid.v4();
+        setSessionToken(sessionToken);
+        const defaultAvatar = avatar_list.find(avatar => avatar.avatar_id === "1")?.avatar_image;
+
+        const result = await session.run(
+          `CREATE (u:User {
+             email: $email,
+             password: $password,
+             name: $name,
+             streak: 0,
+             coins: 100,
+             exp: 0,
+             backgroundColor: '#99CA9C',
+             birthday: $birthday,
+             parentEmail: $parentEmail,
+             needsParentalControls: $needsParentalControls,
+             sessionToken: $sessionToken,
+             enableChat: $enableChat, 
+             allowMediaSharing: $allowMediaSharing, 
+             timeLimit: $timeLimit,
+             allowAddViewFriends: $allowAddViewFriends,
+             avatarImage: '1',
+             friendCode: $friendCode
+           })
+           WITH u
+           CREATE (p:pet {petID: $petID})
+           SET p.petName = $petName,
+               p.petPNG = $defaultAvatar
+           CREATE (u)-[:HAS_PET]->(p)
+           RETURN u, p`,
+          { 
+            email, 
+            password, 
+            name: "New User", 
+            birthday, 
+            parentEmail, 
+            needsParentalControls, 
+            sessionToken, 
+            enableChat, 
+            allowAddViewFriends, 
+            allowMediaSharing, 
+            timeLimit, 
+            defaultAvatar, 
+            friendCode, 
+            petID, 
+            petName 
+          }
+        );
+
+        // Always check for actual record creation
+        if (result.records.length > 0) {
+          // Generate salt and encrypt password
+          const salt = Encryption.generateSalt();
+          const key = Encryption.generateKeyFromPassword(password, salt);
+          
+          // Store encrypted credentials
+          await AsyncStorage.setItem("email", email);
+          await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+          await AsyncStorage.setItem("salt", salt);
+          
+          console.log("User signed up successfully.");
+          router.push("/homePage");
+        } else {
+          setError("Failed to create user. Please try again.");
+        }
+      } else {
+        // Sign In Logic
+        const sessionToken = uuid.v4();
+        setSessionToken(sessionToken);
+
+        // First, retrieve the user with the given email
+        const userResult = await session.run(
+          `MATCH (u:User {email: $email}) RETURN u.password as password`,
+          { email }
+        );
+
+        if (userResult.records.length === 0) {
+          setError("No account found with this email.");
+          return;
+        }
+
+        // Check the password
+        const storedPassword = userResult.records[0].get('password');
+        
+        if (storedPassword !== password) {
+          setError("Invalid password.");
+          return;
+        }
+
+        // Update session token
+        await session.run(
+          `MATCH (u:User {email: $email})
+           SET u.sessionToken = $sessionToken
+           RETURN u`,
+          { email, sessionToken }
+        );
+
+        // Store credentials for future use
+        try {
+          // Generate salt and encrypt password
+          const salt = Encryption.generateSalt();
+          const key = Encryption.generateKeyFromPassword(password, salt);
+          
+          await AsyncStorage.setItem("email", email);
+          await AsyncStorage.setItem("password", JSON.stringify(Encryption.encrypt(password, key)));
+          await AsyncStorage.setItem("salt", salt);
+        } catch (storageError) {
+          console.error("Error storing credentials", storageError);
+        }
+
+        console.log("User signed in successfully.");
+        router.push("/homePage");
+      }
+    } catch (error) {
+      console.error("Authentication error", error);
+      setError("An error occurred. Please try again.");
+    } finally {
+      await session.close();
+      await driver.close();
+    }
+  };
+
+  return (
+    &lt;View style={styles.container}>
+      &lt;Text style={styles.title}>{isSignUp ? "Sign Up" : "Sign In"}&lt;/Text>
+
+      &lt;TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="#888888"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={(text) => {
+          setEmail(text);
+          setError(""); // Clear error message when user starts typing
+        }}
+      />
+      &lt;TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="#888888"
+        secureTextEntry
+        value={password}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError(""); // Clear error message when user starts typing
+        }}
+      />
+      {isSignUp &amp;&amp; (
+        &lt;>
+          &lt;TextInput
+            style={styles.input}
+            placeholder="Birthday (YYYY-MM-DD)"
+            placeholderTextColor="#888888"
+            value={birthday}
+            onChangeText={(text) => {
+              setBirthday(text);
+              setError(""); // Clear error message when user starts typing
+            }}
+          />
+          &lt;TextInput
+            style={styles.input}
+            placeholder="Parent's Email (if under 13)"
+            placeholderTextColor="#888888"
+            keyboardType="email-address"
+            value={parentEmail}
+            onChangeText={(text) => {
+              setParentEmail(text);
+              setError(""); // Clear error message when user starts typing
+            }}
+          />
+        &lt;/>
+      )}
+
+      {/* Display error message */}
+      {error ? &lt;Text style={styles.errorText}>{error}&lt;/Text> : null}
+
+      &lt;TouchableOpacity onPress={handleAuth} style={styles.button}>
+        &lt;Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}&lt;/Text>
+      &lt;/TouchableOpacity>
+
+      &lt;TouchableOpacity onPress={handleAuthToggle}>
+        &lt;Text style={styles.toggleText}>
+          {isSignUp ? "Already have an account? Sign In" : "New user? Sign Up"}
+        &lt;/Text>
+      &lt;/TouchableOpacity>
+    &lt;/View>
+  );
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#logOut">logOut</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Mon Dec 09 2024 21:51:01 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
