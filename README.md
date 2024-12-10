@@ -38,6 +38,14 @@ In the output, you'll find options to open the app in a variety of environments.
   To enable those features, click **Profile --> Parental Controls**. You can enable/disable features through moving the sliders at the bottom of the page.
 - To close the app, interrupt the running process by typing Ctrl+C in your terminal.
 
+# If you want to chat with Ollama (Using Llama 3.1 configuration)
+- Use this install and run command to start typing messages to Ollama in the terminal:
+
+   ```
+    pip install ollama
+    ollama run llama3.1:latest
+   ```
+
 ## How to Contribute
 
 - Follow the instructions in **How to Build** to copy our latest release and cd to src. Most relevant files can be found under the app directory. Database information can be found in two locations: backend/graph_database and
